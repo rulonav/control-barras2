@@ -1,0 +1,83 @@
+\control-barras2\src\hooks\useFinalizarDebug.js 
+import { Alert } from 'react-native';
+import databaseService from '../services/databaseService';
+import exportService from '../services/exportService';
+
+export const useFinalizarDebug = () => {
+  
+  const debugFinalizarRuta = async (ruta, formato = 'texto') => {
+    console.log('🔧 DEBUG: Iniciando finalizarRuta...');
+    
+    try {
+      // 1. Verificar que existe ruta
+      if (!ruta) {
+        console.error('❌ DEBUG: No hay ruta activa');
+        return { success: false, mensaje: 'No hay ruta activa' };
+      }
+
+      console.log('✅ DEBUG: Ruta encontrada:', ruta.id, 'Número:', ruta.numero);
+
+      // 2. Marcar ruta como finalizada
+      console.log('🔄 DEBUG: Marcando ruta como finalizada...');
+      await databaseService.finalizarRuta(ruta.id);
+      console.log('✅ DEBUG: Ruta marcada como finalizada');
+
+      // 3. Obtener usuario
+      console.log('🔄 DEBUG: Obteniendo usuario...');
+      const usuario = await databaseService.obtenerUsuarioActual();
+      if (!usuario) {
+        console.error('❌ DEBUG: No se pudo obtener usuario');
+        return { success: false, mensaje: 'No se pudo obtener usuario' };
+      }
+      console.log('✅ DEBUG: Usuario obtenido:', usuario.nombre);
+
+      // 4. Obtener productos
+      console.log('🔄 DEBUG: Obteniendo productos...');
+      const productosRuta = await databaseService.obtenerProductosRuta(ruta.id);
+      console.log('✅ DEBUG: Productos obtenidos:', productosRuta?.length);
+
+      if (!productosRuta || productosRuta.length === 0) {
+        console.warn('⚠️ DEBUG: No hay productos en la ruta');
+      }
+
+      // 5. Exportar
+      console.log('🔄 DEBUG: Ejecutando exportación con formato:', formato);
+      let resultadoExport;
+      
+      switch (formato) {
+        case 'texto':
+          resultadoExport = await exportService.exportarReporteTexto(ruta, usuario, productosRuta);
+          break;
+        case 'csv':
+          resultadoExport = await exportService.exportarReporteCSV(ruta, usuario, productosRuta);
+          break;
+        case 'ambos':
+          resultadoExport = await exportService.exportarAmbosFormatos(ruta, usuario, productosRuta);
+          break;
+        default:
+          resultadoExport = await exportService.exportarReporteTexto(ruta, usuario, productosRuta);
+      }
+
+      console.log('✅ DEBUG: Exportación completada:', resultadoExport);
+
+      return {
+        success: true,
+        exportSuccess: resultadoExport.success,
+        mensaje: resultadoExport.mensaje || '✅ Ruta finalizada correctamente',
+        resultadoExport: resultadoExport
+      };
+
+    } catch (error) {
+      console.error('❌ DEBUG: Error en finalizarRuta:', error);
+      return {
+        success: false,
+        error: error.message,
+        mensaje: '❌ Error al finalizar la ruta: ' + error.message
+      };
+    }
+  };
+
+  return {
+    debugFinalizarRuta
+  };
+};

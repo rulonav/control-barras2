@@ -1,0 +1,334 @@
+// src/styles/ScannerScreenStyles.js
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  scannerContainer: {
+    flex: 1,
+  },
+  infoCard: {
+    padding: 15,
+    margin: 10,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  rutaTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  userText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  stats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  countText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+  countLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 5,
+  },
+  resultBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  resultText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  resultCodigo: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  velocityIndicator: {
+    alignItems: 'center',
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+  },
+  velocityLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  velocityDescription: {
+    fontSize: 10,
+    color: '#888',
+    fontWeight: 'bold',
+  },
+  actionsCard: {
+    padding: 10,
+    margin: 10,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  menuPrincipalButton: {
+    justifyContent: 'center',
+  },
+  buttonContent: {
+    flexDirection: 'row-reverse', // Icono a la izquierda
+    justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalActionsContent: {
+    width: width * 0.8,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalFormatContent: {
+    width: width * 0.8,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalFormatTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalActionItem: {
+    padding: 15,
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  modalActionText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalCancelItem: {
+    padding: 15,
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#f44336',
+  },
+  disabledAction: {
+    opacity: 0.5,
+    backgroundColor: '#e0e0e0',
+  },
+  disabledText: {
+    color: '#aaa',
+  },
+  card: {
+    margin: 10,
+    padding: 15,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  userInfo: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 10,
+  },
+  input: {
+    marginBottom: 15,
+  },
+  primaryButton: {
+    backgroundColor: '#2196F3',
+    marginTop: 10,
+  },
+  secondaryButton: {
+    marginTop: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  successCard: {
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+    margin: 10,
+  },
+  errorCard: {
+    borderColor: '#F44336',
+    borderWidth: 2,
+    margin: 10,
+  },
+  resultText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  codigoText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  backButton: {
+    margin: 10,
+  },
+  listContainer: {
+    flex: 1,
+    padding: 10,
+  },
+  productCard: {
+    marginVertical: 2,
+  },
+  productRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  productCode: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  productIndex: {
+    fontSize: 12,
+    color: '#666',
+  },
+  productDetail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  productTime: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: width * 0.8,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalList: {
+    maxHeight: height * 0.4,
+    marginBottom: 15,
+  },
+  modalItem: {
+    padding: 15,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  modalItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalItemDetail: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalCancelButton: {
+    flex: 1,
+  },
+  continuarButton: {
+    marginTop: 15,
+  },
+  estadisticaItem: {
+    fontSize: 14,
+    marginVertical: 2,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  listHeader: {
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  productsScrollView: {
+    flex: 1,
+  },
+});
+
+// ✅ CORREGIDO: Exportar con nombre
+export { styles };

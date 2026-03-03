@@ -1,0 +1,183 @@
+// src/hooks/useScanner.js
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useProductOperations } from '../hooks/useProductOperations';
+import { useMellizoOperations } from '../hooks/useMellizoOperations';
+import audioService from '../services/audioService';
+import barcodeService from '../services/barcodeService';
+
+export const useScanner = ({
+  ruta,
+  productos,
+  setProductos,
+  setUltimoResultado,
+  setLoading
+}) => {
+  console.log('🔄 [useScanner] Hook cargado con ruta:', ruta?.numero);
+  
+  const [scannerActive, setScannerActive] = useState(false);
+  const [revisandoMellizos, setRevisandoMellizos] = useState(false);
+  const [mellizoActual, setMellizoActual] = useState(null);
+  const [modoDanado, setModoDanado] = useState(false);
+  const [showModalDanados, setShowModalDanados] = useState(false);
+  const [ultimoResultadoLocal, setUltimoResultadoLocal] = useState(null);
+  const [ultimoCodigo, setUltimoCodigo] = useState('');
+  const [ultimoTimestamp, setUltimoTimestamp] = useState(0);
+  const [velocidadEscaneo, setVelocidadEscaneo] = useState(0);
+  const [flashColor, setFlashColor] = useState('#00ff00');
+  const [flashCount, setFlashCount] = useState(0);
+  
+  // ✅ REFS PARA ACCESO INMEDIATO EN CALLBACKS
+  const scannerActiveRef = useRef(scannerActive);
+  const ultimoCodigoRef = useRef(ultimoCodigo);
+  const ultimoTimestampRef = useRef(ultimoTimestamp);
+  const modoDanadoRef = useRef(modoDanado);
+  const showModalDanadosRef = useRef(showModalDanados);
+
+  useEffect(() => { scannerActiveRef.current = scannerActive; }, [scannerActive]);
+  useEffect(() => { ultimoCodigoRef.current = ultimoCodigo; }, [ultimoCodigo]);
+  useEffect(() => { ultimoTimestampRef.current = ultimoTimestamp; }, [ultimoTimestamp]);
+  useEffect(() => { modoDanadoRef.current = modoDanado; }, [modoDanado]);
+  useEffect(() => { showModalDanadosRef.current = showModalDanados; }, [showModalDanados]);
+
+  const { procesarEscaneo, marcarProductoComoDanado, marcarProductoComoMellizo } = useProductOperations({
+    ruta,
+    productos,
+    setProductos,
+    setUltimoResultado: setUltimoResultadoLocal,
+    setLoading
+  });
+
+  // ✅ MANEJO DE ESCANEO PRINCIPAL
+  const handleScan = useCallback(async (codigo) => {
+    console.log('🔍 [useScanner] handleScan llamado con código:', codigo);
+    
+    if (!codigo) {
+      console.log('❌ [useScanner] Código inválido');
+      return;
+    }
+
+    const timestampActual = Date.now();
+    const tiempoTranscurrido = timestampActual - ultimoTimestampRef.current;
+    
+    // ✅ EVITAR ESCANEOS DEMASIADO RÁPIDOS (<100ms)
+    if (tiempoTranscurrido < 100) {
+      console.log('⏱️ [useScanner] Escaneo demasiado rápido, ignorando');
+      await audioService.playErrorSound();
+      return;
+    }
+
+    setUltimoTimestamp(timestampActual);
+    setUltimoCodigo(codigo);
+    setVelocidadEscaneo(tiempoTranscurrido);
+
+    try {
+      const resultado = await procesarEscaneo(codigo, modoDanadoRef.current);
+      setUltimoResultadoLocal(resultado);
+      
+      if (setUltimoResultado) {
+        setUltimoResultado(resultado);
+      }
+
+      if (resultado.success) {
+        await audioService.playSuccessSound();
+        setFlashColor('#00ff00');
+        setFlashCount(prev => prev + 1);
+        setTimeout(() => setFlashColor('#000000'), 100);
+      } else {
+        await audioService.playErrorSound();
+        setFlashColor('#ff0000');
+        setFlashCount(prev => prev + 1);
+        setTimeout(() => setFlashColor('#000000'), 100);
+      }
+    } catch (error) {
+      console.error('❌ [useScanner] Error procesando escaneo:', error);
+      const resultadoError = {
+        success: false,
+        mensaje: error.message || 'Error desconocido',
+        tipo: 'error'
+      };
+      setUltimoResultadoLocal(resultadoError);
+      if (setUltimoResultado) {
+        setUltimoResultado(resultadoError);
+      }
+      await audioService.playErrorSound();
+    }
+  }, [procesarEscaneo, setUltimoResultado]);
+
+  // ✅ MANEJO DE ACCIONES DE MELLIZOS
+  const manejarAccionMellizos = useCallback(async (accion) => {
+    console.log('🔄 [useScanner] manejarAccionMellizos llamado con acción:', accion);
+    
+    if (!mellizoActual) {
+      console.log('⚠️ [useScanner] No hay mellizo actual para procesar');
+      return;
+    }
+
+    try {
+      const { procesarMellizosConAccion } = useMellizoOperations();
+      const { completado, mensaje, error } = await procesarMellizosConAccion(accion, mellizoActual);
+      
+      if (completado) {
+        await audioService.playSuccessSound();
+        setRevisandoMellizos(false);
+        setMellizoActual(null);
+        Alert.alert('✅ Éxito', mensaje);
+      } else {
+        Alert.alert('❌ Error', error || mensaje);
+      }
+    } catch (error) {
+      console.error('❌ [useScanner] Error manejando acción de mellizos:', error);
+      Alert.alert('❌ Error', error.message);
+    }
+  }, [mellizoActual]);
+
+  // ✅ SALTAR REVISIÓN DE MELLIZOS
+  const saltarRevisionMellizos = useCallback(() => {
+    console.log('🔄 [useScanner] saltarRevisionMellizos llamado');
+    setRevisandoMellizos(false);
+    setMellizoActual(null);
+  }, []);
+
+  // ✅ MODAL DE PRODUCTOS DAÑADOS
+  const abrirModalProductosDanados = useCallback(() => {
+    console.log('🔄 [useScanner] abrirModalProductosDanados llamado');
+    setShowModalDanados(true);
+  }, []);
+
+  const cerrarModalProductosDanados = useCallback(() => {
+    setShowModalDanados(false);
+  }, []);
+
+  // ✅ TOGGLE MODO DEFECTUOSO
+  const toggleModoDanado = useCallback(() => {
+    setModoDanado(prev => !prev);
+  }, []);
+
+  return {
+    scannerActive,
+    setScannerActive,
+    revisandoMellizos,
+    setRevisandoMellizos,
+    mellizoActual,
+    setMellizoActual,
+    modoDanado,
+    setModoDanado,
+    showModalDanados,
+    setShowModalDanados,
+    ultimoResultado: ultimoResultadoLocal,
+    ultimoCodigo,
+    ultimoTimestamp,
+    velocidadEscaneo,
+    flashColor,
+    flashCount,
+    handleScan,
+    manejarAccionMellizos,
+    saltarRevisionMellizos,
+    abrirModalProductosDanados,
+    cerrarModalProductosDanados,
+    toggleModoDanado,
+    marcarProductoComoDanado,
+    marcarProductoComoMellizo,
+  };
+};

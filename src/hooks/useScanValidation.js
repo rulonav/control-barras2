@@ -1,0 +1,124 @@
+// src/hooks/useScanValidation.js
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Vibration } from 'react-native';
+import scanValidationService from '../services/scanValidationService';
+import audioService from '../services/audioService';
+
+export const useScanValidation = (velocidadEscaneo = 300) => { // 🔥 REDUCIDO A 300ms
+  const [ultimoEscaneo, setUltimoEscaneo] = useState(0);
+  const [escaneoDisponible, setEscaneoDisponible] = useState(true);
+  const [estadisticas, setEstadisticas] = useState({});
+  
+  const scanTimeoutRef = useRef(null);
+  const lastProcessedCode = useRef(''); // 🔥 EVITAR REPROCESAMIENTO
+
+  // ✅ EFECTO PARA CONTROLAR EL TIEMPO ENTRE ESCANEOS
+  useEffect(() => {
+    if (ultimoEscaneo > 0) {
+      setEscaneoDisponible(false);
+      const timer = setTimeout(() => {
+        setEscaneoDisponible(true);
+      }, velocidadEscaneo);
+      return () => clearTimeout(timer);
+    }
+  }, [ultimoEscaneo, velocidadEscaneo]);
+
+  // ✅ OPTIMIZADO: VALIDAR ESCANEO CON RESPUESTA INMEDIATA
+  const validarEscaneo = useCallback((codigo) => {
+    // ✅ Validación ultra-rápida de duplicados
+    if (codigo === lastProcessedCode.current) {
+      return {
+        valido: false,
+        razon: 'duplicado_inmediato',
+        mensaje: '🔄 Código ya procesado'
+      };
+    }
+
+    if (!escaneoDisponible) {
+      Vibration.vibrate(100);
+      audioService.playErrorSound(); // 🔥 SONIDO DE ERROR INMEDIATO
+      return {
+        valido: false,
+        razon: 'velocidad',
+        mensaje: '⏳ Espera entre escaneos'
+      };
+    }
+
+    const validacion = scanValidationService.puedeProcesarCodigo(codigo, velocidadEscaneo);
+
+    // ✅ RESPUESTA INMEDIATA CON SONIDO SIMULTÁNEO
+    if (!validacion.puedeProcesar) {
+      Vibration.vibrate(100);
+      audioService.playErrorSound(); // 🔥 SONIDO DE ERROR
+    } else {
+      // ✅ ACTIVAR SONIDO Y MARCAR TIEMPO SIMULTÁNEAMENTE
+      audioService.playSuccessSound(); // 🔥 SONIDO DE ÉXITO
+      setUltimoEscaneo(Date.now());
+      scanValidationService.agregarProcesamiento(codigo);
+      lastProcessedCode.current = codigo; // 🔥 REGISTRAR ÚLTIMO CÓDIGO
+    }
+
+    return {
+      valido: validacion.puedeProcesar,
+      razon: validacion.razon,
+      mensaje: validacion.mensaje,
+      codigoLimpio: validacion.codigoLimpio,
+      timestamp: Date.now() // 🔥 TIMESTAMP PRECISO PARA SINCRONIZACIÓN
+    };
+  }, [escaneoDisponible, velocidadEscaneo]);
+
+  // ✅ OPTIMIZADO: FINALIZAR PROCESAMIENTO MÁS RÁPIDO
+  const finalizarProcesamiento = useCallback((codigo) => {
+    scanValidationService.removerProcesamiento(codigo);
+    scanValidationService.agregarAUltimos(codigo);
+    // 🔥 LIMPIAR CACHE DESPUÉS DE UN TIEMPO
+    setTimeout(() => {
+      if (lastProcessedCode.current === codigo) {
+        lastProcessedCode.current = '';
+      }
+    }, 1000);
+  }, []);
+
+  // ✅ LIMPIAR ESTADO
+  const limpiarValidacion = useCallback(() => {
+    scanValidationService.limpiarTodo();
+    setUltimoEscaneo(0);
+    setEscaneoDisponible(true);
+    lastProcessedCode.current = ''; // 🔥 LIMPIAR CACHE
+    if (scanTimeoutRef.current) {
+      clearTimeout(scanTimeoutRef.current);
+    }
+  }, []);
+
+  // ✅ ACTUALIZAR ESTADÍSTICAS
+  const actualizarEstadisticas = useCallback(() => {
+    setEstadisticas(scanValidationService.obtenerEstadisticas());
+  }, []);
+
+  // ✅ NUEVO: MÉTODO PARA SINCRONIZACIÓN FORZADA
+  const sincronizarFeedback = useCallback((codigo, esValido) => {
+    if (esValido) {
+      audioService.playSuccessSound();
+      setUltimoEscaneo(Date.now());
+    } else {
+      audioService.playErrorSound();
+      Vibration.vibrate(100);
+    }
+  }, []);
+
+  return {
+    // Estado
+    ultimoEscaneo,
+    escaneoDisponible,
+    estadisticas,
+    // Acciones
+    validarEscaneo,
+    finalizarProcesamiento,
+    limpiarValidacion,
+    actualizarEstadisticas,
+    sincronizarFeedback, // 🔥 NUEVO: PARA SINCRONIZACIÓN MANUAL
+    // Utilidades
+    tiempoRestante: escaneoDisponible ? 0 : Math.max(0, velocidadEscaneo - (Date.now() - ultimoEscaneo)),
+    velocidadActual: velocidadEscaneo // 🔥 NUEVO: PARA REFERENCIA
+  };
+};

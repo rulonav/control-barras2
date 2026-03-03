@@ -1,0 +1,84 @@
+// src/styles/ControlListScreenStyles.js
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  headerCard: {
+    marginBottom: 20,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 10,
+  },
+  primaryButton: {
+    backgroundColor: '#28a745',
+    marginVertical: 10,
+  },
+  secondaryButton: {
+    backgroundColor: '#ffc107',
+    marginVertical: 10,
+  },
+  successButton: {
+    backgroundColor: '#17a2b8',
+    marginVertical: 10,
+  },
+  backButton: {
+    marginTop: 'auto', // Empuja el botón hacia abajo
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  archivoInfo: {
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 20,
+    elevation: 1,
+  },
+  archivoNombre: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  archivoDetalles: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  procesoInfo: {
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 20,
+    elevation: 1,
+  },
+  procesoTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  procesoDetalle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+});
+
+// ✅ CORREGIDO: Exportar con nombre
+export { styles };

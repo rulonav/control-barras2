@@ -1,0 +1,48 @@
+\control-barras2\src\styles\FormRutaStyles.js 
+// src/styles/FormRutaStyles.js
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  card: {
+    margin: 10,
+    padding: 15,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  userInfo: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 10,
+  },
+  input: {
+    marginBottom: 15,
+  },
+  primaryButton: {
+    backgroundColor: '#2196F3',
+    marginTop: 10,
+  },
+  secondaryButton: {
+    marginTop: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+});
+
+// ✅ Exportar con nombre
+export { styles };

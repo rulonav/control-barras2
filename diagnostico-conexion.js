@@ -1,0 +1,197 @@
+// diagnostico-conexion.js
+const { execSync } = require('child_process');
+const https = require('https');
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+
+console.log('🔍 ========================================');
+console.log('🔍 DIAGNÓSTICO DE CONEXIÓN EXPO TUNNEL');
+console.log('🔍 ========================================\n');
+
+const resultados = {
+  problemas: [],
+  advertencias: [],
+  exito: []
+};
+
+// ✅ 1. VERIFICAR NODE.JS
+console.log('📌 1. Verificando Node.js...');
+try {
+  const nodeVersion = execSync('node --version').toString().trim();
+  resultados.exito.push(`✅ Node.js: ${nodeVersion}`);
+  console.log(`   ✅ Node.js: ${nodeVersion}`);
+} catch (error) {
+  resultados.problemas.push('❌ Node.js no está instalado o no está en el PATH');
+  console.log('   ❌ Node.js no encontrado');
+}
+
+// ✅ 2. VERIFICAR NPM
+console.log('\n📌 2. Verificando NPM...');
+try {
+  const npmVersion = execSync('npm --version').toString().trim();
+  resultados.exito.push(`✅ NPM: ${npmVersion}`);
+  console.log(`   ✅ NPM: ${npmVersion}`);
+} catch (error) {
+  resultados.problemas.push('❌ NPM no está instalado o no está en el PATH');
+  console.log('   ❌ NPM no encontrado');
+}
+
+// ✅ 3. VERIFICAR EXPO CLI
+console.log('\n📌 3. Verificando Expo CLI...');
+try {
+  const expoVersion = execSync('npx expo --version').toString().trim();
+  resultados.exito.push(`✅ Expo CLI: ${expoVersion}`);
+  console.log(`   ✅ Expo CLI: ${expoVersion}`);
+} catch (error) {
+  resultados.problemas.push('❌ Expo CLI no está instalado');
+  console.log('   ❌ Expo CLI no encontrado');
+  resultados.advertencias.push('💡 Ejecuta: npm install -g expo-cli');
+}
+
+// ✅ 4. VERIFICAR CONEXIÓN A INTERNET
+console.log('\n📌 4. Verificando conexión a Internet...');
+try {
+  https.get('https://exp.host', (res) => {
+    if (res.statusCode === 200) {
+      resultados.exito.push('✅ Conexión a exp.host: OK');
+      console.log('   ✅ Conexión a exp.host: OK');
+    } else {
+      resultados.problemas.push(`❌ exp.host respondió con código: ${res.statusCode}`);
+      console.log(`   ❌ exp.host respondió con código: ${res.statusCode}`);
+    }
+  }).on('error', (err) => {
+    resultados.problemas.push(`❌ No se pudo conectar a exp.host: ${err.message}`);
+    console.log(`   ❌ Error: ${err.message}`);
+  });
+} catch (error) {
+  resultados.problemas.push(`❌ Error verificando conexión: ${error.message}`);
+  console.log(`   ❌ Error: ${error.message}`);
+}
+
+// ✅ 5. VERIFICAR PUERTOS DISPONIBLES
+console.log('\n📌 5. Verificando puertos Expo (8081, 19000-19002)...');
+const puertos = [8081, 19000, 19001, 19002];
+puertos.forEach(puerto => {
+  try {
+    execSync(`netstat -ano | findstr :${puerto}`, { stdio: 'pipe' });
+    resultados.advertencias.push(`⚠️ Puerto ${puerto} ya está en uso`);
+    console.log(`   ⚠️ Puerto ${puerto}: EN USO`);
+  } catch (error) {
+    resultados.exito.push(`✅ Puerto ${puerto}: DISPONIBLE`);
+    console.log(`   ✅ Puerto ${puerto}: DISPONIBLE`);
+  }
+});
+
+// ✅ 6. VERIFICAR VARIABLES DE ENTORNO
+console.log('\n📌 6. Verificando variables de entorno...');
+const varsRequeridas = ['EXPO_TOKEN', 'HTTPS_PROXY', 'HTTP_PROXY'];
+varsRequeridas.forEach(varName => {
+  if (process.env[varName]) {
+    resultados.advertencias.push(`⚠️ ${varName} está configurada: ${process.env[varName].substring(0, 10)}...`);
+    console.log(`   ⚠️ ${varName}: CONFIGURADA`);
+  } else {
+    resultados.exito.push(`✅ ${varName}: No configurada (OK)`);
+    console.log(`   ✅ ${varName}: No configurada`);
+  }
+});
+
+// ✅ 7. VERIFICAR FIREWALL
+console.log('\n📌 7. Verificando reglas de Firewall...');
+try {
+  if (os.platform() === 'win32') {
+    execSync('netsh advfirewall show allprofiles', { stdio: 'pipe' });
+    resultados.exito.push('✅ Firewall de Windows: Accesible');
+    console.log('   ✅ Firewall de Windows: Accesible');
+  } else {
+    resultados.exito.push('✅ Sistema no Windows (firewall no verificado)');
+    console.log('   ✅ Sistema no Windows');
+  }
+} catch (error) {
+  resultados.advertencias.push('⚠️ No se pudo verificar el firewall');
+  console.log('   ⚠️ No se pudo verificar el firewall');
+}
+
+// ✅ 8. VERIFICAR PACKAGE.JSON
+console.log('\n📌 8. Verificando package.json...');
+try {
+  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+  resultados.exito.push(`✅ package.json: ${packageJson.name}@${packageJson.version}`);
+  console.log(`   ✅ ${packageJson.name}@${packageJson.version}`);
+  
+  if (!packageJson.dependencies.expo) {
+    resultados.problemas.push('❌ expo no está en las dependencias');
+    console.log('   ❌ expo no está en las dependencias');
+  }
+} catch (error) {
+  resultados.problemas.push('❌ No se pudo leer package.json');
+  console.log('   ❌ No se pudo leer package.json');
+}
+
+// ✅ 9. VERIFICAR APP.JSON
+console.log('\n📌 9. Verificando app.json...');
+try {
+  const appJson = JSON.parse(fs.readFileSync('./app.json', 'utf8'));
+  resultados.exito.push(`✅ app.json: ${appJson.expo.name}`);
+  console.log(`   ✅ ${appJson.expo.name}`);
+  
+  if (!appJson.expo.slug) {
+    resultados.advertencias.push('⚠️ app.json no tiene slug definido');
+    console.log('   ⚠️ slug no definido');
+  }
+} catch (error) {
+  resultados.advertencias.push('⚠️ No se pudo leer app.json');
+  console.log('   ⚠️ No se pudo leer app.json');
+}
+
+// ✅ 10. VERIFICAR NODE_MODULES
+console.log('\n📌 10. Verificando node_modules...');
+try {
+  if (fs.existsSync('./node_modules')) {
+    const stats = fs.statSync('./node_modules');
+    resultados.exito.push(`✅ node_modules: ${stats.size} bytes`);
+    console.log('   ✅ node_modules existe');
+  } else {
+    resultados.problemas.push('❌ node_modules no existe');
+    console.log('   ❌ node_modules no existe');
+    resultados.advertencias.push('💡 Ejecuta: npm install');
+  }
+} catch (error) {
+  resultados.problemas.push('❌ Error accediendo a node_modules');
+  console.log('   ❌ Error accediendo a node_modules');
+}
+
+// ✅ RESUMEN FINAL
+setTimeout(() => {
+  console.log('\n🔍 ========================================');
+  console.log('🔍 RESUMEN DEL DIAGNÓSTICO');
+  console.log('🔍 ========================================\n');
+  
+  console.log(`✅ ÉXITOS: ${resultados.exito.length}`);
+  console.log(`⚠️ ADVERTENCIAS: ${resultados.advertencias.length}`);
+  console.log(`❌ PROBLEMAS: ${resultados.problemas.length}\n`);
+  
+  if (resultados.problemas.length > 0) {
+    console.log('🚨 PROBLEMAS CRÍTICOS:');
+    resultados.problemas.forEach((p, i) => console.log(`   ${i + 1}. ${p}`));
+  }
+  
+  if (resultados.advertencias.length > 0) {
+    console.log('\n⚠️ ADVERTENCIAS:');
+    resultados.advertencias.forEach((a, i) => console.log(`   ${i + 1}. ${a}`));
+  }
+  
+  if (resultados.exito.length > 0) {
+    console.log('\n✅ TODO CORRECTO:');
+    resultados.exito.forEach((e, i) => console.log(`   ${i + 1}. ${e}`));
+  }
+  
+  console.log('\n🔍 ========================================');
+  
+  if (resultados.problemas.length === 0) {
+    console.log('🎉 ¡Tu configuración parece estar lista para Expo Tunnel!');
+  } else {
+    console.log('⚠️ Se encontraron problemas que deben resolverse antes de usar Tunnel.');
+  }
+  console.log('🔍 ========================================\n');
+}, 2000);

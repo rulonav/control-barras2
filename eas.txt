@@ -1,0 +1,13 @@
+\control-barras2\eas.json 
+﻿{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "production": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+\control-barras2\src\components\ModalDanados.js 
+import React from 'react';
+import { View, ScrollView, Text, TouchableOpacity, Modal, Alert } from 'react-native';
+import { Button, Card } from 'react-native-paper';
+import { styles } from '../styles/ScannerScreenStyles';
+
+const ModalDanados = ({
+  visible,
+  onClose,
+  productos,
+  onMarcarDanado
+}) => {
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>⚠️ Seleccionar Producto Dañado</Text>
+          <Text style={styles.modalSubtitle}>
+            {productos ? productos.filter(p => !p.es_danado).length : 0} productos disponibles
+          </Text>
+          
+          <ScrollView style={styles.modalList}>
+            {productos && productos
+              .filter(prod => !prod.es_danado)
+              .map((producto, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalItem}
+                  onPress={async () => {
+                    try {
+                      const resultado = await onMarcarDanado(producto.codigo);
+                      onClose();
+                      if (resultado.success) {
+                        Alert.alert('✅ Éxito', resultado.mensaje);
+                      } else {
+                        Alert.alert('❌ Error', resultado.mensaje);
+                      }
+                    } catch (error) {
+                      Alert.alert('❌ Error', 'No se pudo marcar el producto como dañado: ' + error.message);
+                    }
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{producto.codigo}</Text>
+                  <Text style={styles.modalItemDetail}>
+                    {producto.detalle || 'Normal'} - {new Date(producto.timestamp).toLocaleTimeString()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
+
+          <View style={styles.modalButtons}>
+            <Button 
+              mode="outlined" 
+              onPress={onClose}
+              style={styles.modalCancelButton}
+            >
+              ❌ Cancelar
+            </Button>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export default ModalDanados;
