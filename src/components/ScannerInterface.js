@@ -327,4 +327,98 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
       if (productosNoDefectuosos.length === 0) { Alert.alert('ℹ️ Info', 'No hay productos para marcar como defectuosos'); return; }
       setProductosParaDefectuosos(productosNoDefectuosos);
       setMostrarModalDefectuosos(true);
-    } catch (error) { console.error('❌ Error obteniendo productos:', error); Alert.alert('Error', 
+    } catch (error) {
+      console.error('❌ Error obteniendo productos:', error);
+      Alert.alert('Error', 'No se pudieron cargar los productos para marcar como defectuosos');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {!hasPermission ? (
+        <View style={styles.permissionContainer}>
+          <Text style={styles.permissionText}>📷 Permiso de cámara requerido</Text>
+          <Button title="Abrir configuración" onPress={requestPermissions} />
+        </View>
+      ) : (
+        <>
+          <Camera
+            ref={cameraRef}
+            style={styles.camera}
+            type={CameraType.back}
+            flashMode={flash}
+            onBarCodeScanned={modoDefectuosoLocal ? null : handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: [
+                BarcodeType.barcode128,
+                BarcodeType.barcode39,
+                BarcodeType.barcode93,
+                BarcodeType.code25,
+                BarcodeType.code39,
+                BarcodeType.code93,
+                BarcodeType.codabar,
+                BarcodeType.ean13,
+                BarcodeType.ean8,
+                BarcodeType.upc_a,
+                BarcodeType.upc_e,
+                BarcodeType.itf14,
+                BarcodeType.pdf417,
+                BarcodeType.qr,
+                BarcodeType.aztec,
+                BarcodeType.datamatrix,
+              ],
+            }}
+          />
+          
+          {/* Overlay de feedback visual */}
+          {ultimoResultado && (
+            <FeedbackOverlay
+              resultado={ultimoResultado}
+              mensajeError={mensajeError}
+            />
+          )}
+
+          {/* Header con controles */}
+          <ScannerHeader
+            ruta={ruta}
+            modoDefectuoso={modoDefectuosoLocal}
+            flash={flash}
+            getFlashIcon={getFlashIcon}
+            toggleModoDefectuoso={toggleModoDefectuoso}
+            toggleFlash={toggleFlash}
+            handleMarcarDefectuoso={handleMarcarDefectuoso}
+            handleSalir={handleSalir}
+          />
+
+          {/* Modal de productos defectuosos */}
+          {mostrarModalDefectuosos && (
+            <ModalDefectuosos
+              visible={mostrarModalDefectuosos}
+              productos={productosParaDefectuosos}
+              onClose={() => setMostrarModalDefectuosos(false)}
+              onConfirmar={confirmarProductosDefectuosos}
+            />
+          )}
+
+          {/* Modal de salida */}
+          {mostrarModalSalida && (
+            <ExitConfirmationModal
+              visible={mostrarModalSalida}
+              onConfirmar={confirmarSalida}
+              onCancelar={() => setMostrarModalSalida(false)}
+            />
+          )}
+
+          {/* Modal de ingreso manual */}
+          {mostrarModalManual && (
+            <ManualInputModal
+              visible={mostrarModalManual}
+              onClose={() => setMostrarModalManual(false)}
+              onConfirmar={confirmarCodigoManual}
+            />
+          )}
+        </>
+      )}
+    </View>
+  );
+}; 
