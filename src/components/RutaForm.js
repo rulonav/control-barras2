@@ -1,15 +1,57 @@
 // src/components/RutaForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Alert, ScrollView } from 'react-native';
 import { Card, Button, Title, HelperText } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../styles/FormRutaStyles';
+
+// ✅ CLAVES PARA PERSISTENCIA DE PREFERENCIAS
+const STORAGE_KEYS = {
+  PREFIJO1: 'ruta_prefijo1_default',
+  PREFIJO2: 'ruta_prefijo2_default',
+  TIPO_RUTA: 'ruta_tipo_default'
+};
 
 const RutaForm = ({ onCrearRuta, userData }) => {
   const [tipoRuta, setTipoRuta] = useState('numerica');
   const [nombreRuta, setNombreRuta] = useState('');
-  // ✅ CAMPOS DE RANGO - POR DEFECTO 45 Y 47
+  // ✅ VALORES POR DEFECTO CORREGIDOS
   const [prefijo1, setPrefijo1] = useState('45');
   const [prefijo2, setPrefijo2] = useState('47');
+  const [cargandoPreferencias, setCargandoPreferencias] = useState(true);
+
+  // ✅ CARGAR PREFERENCIAS GUARDADAS AL MONTAR
+  useEffect(() => {
+    const cargarPreferencias = async () => {
+      try {
+        const [p1, p2, tipo] = await AsyncStorage.multiGet([
+          STORAGE_KEYS.PREFIJO1,
+          STORAGE_KEYS.PREFIJO2,
+          STORAGE_KEYS.TIPO_RUTA
+        ]);
+
+        if (p1[1]) setPrefijo1(p1[1]);
+        if (p2[1]) setPrefijo2(p2[1]);
+        if (tipo[1]) setTipoRuta(tipo[1]);
+      } catch (error) {
+        console.warn('⚠️ No se pudieron cargar preferencias:', error);
+      } finally {
+        setCargandoPreferencias(false);
+      }
+    };
+    cargarPreferencias();
+  }, []);
+
+  // ✅ GUARDAR PREFERENCIAS CUANDO CAMBIAN
+  useEffect(() => {
+    if (!cargandoPreferencias) {
+      AsyncStorage.multiSet([
+        [STORAGE_KEYS.PREFIJO1, prefijo1],
+        [STORAGE_KEYS.PREFIJO2, prefijo2],
+        [STORAGE_KEYS.TIPO_RUTA, tipoRuta]
+      ]).catch(error => console.warn('⚠️ No se pudieron guardar preferencias:', error));
+    }
+  }, [prefijo1, prefijo2, tipoRuta, cargandoPreferencias]);
 
   const handleCrear = () => {
     // Validar prefijos (deben ser 2 dígitos numéricos)
@@ -41,18 +83,33 @@ const RutaForm = ({ onCrearRuta, userData }) => {
       }
       nombreFinal = `AM1__${soloNumeros}`;
     }
-    // ✅ PASAR LOS PREFIJOS AL CREAR RUTA
+    
+    // ✅ CORREGIDO: CÁLCULO DEL RANGO
+    // prefijo1 define el inicio: 45 -> 45000000000
+    // prefijo2 define el fin: 47 -> 47999999999
+    const codigoInicial = `${prefijo1}${'0'.repeat(9)}`;  // "45" + "000000000" = "45000000000"
+    const codigoFinal = `${prefijo2}${'9'.repeat(9)}`;    // "47" + "999999999" = "47999999999"
+    
+    // ✅ PASAR LOS PREFIJOS Y CÓDIGOS CALCULADOS CORRECTAMENTE
     onCrearRuta(nombreFinal, tipoRuta, {
       prefijo1: parseInt(prefijo1),
       prefijo2: parseInt(prefijo2),
-      codigoInicial: `${prefijo1}${prefijo2}0000000`,
-      codigoFinal: `${prefijo1}${prefijo2}9999999`
+      codigoInicial: parseInt(codigoInicial),  // 45000000000
+      codigoFinal: parseInt(codigoFinal)       // 47999999999
     });
   };
 
-  // Calcular códigos completos para preview
-  const codigoInicialCompleto = `${prefijo1}${prefijo2}0000000`;
-  const codigoFinalCompleto = `${prefijo1}${prefijo2}9999999`;
+  // ✅ PREVIEW DEL RANGO CORREGIDO
+  const codigoInicialPreview = `${prefijo1}${'0'.repeat(9)}`;
+  const codigoFinalPreview = `${prefijo2}${'9'.repeat(9)}`;
+
+  if (cargandoPreferencias) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 20 }}>Cargando preferencias...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -60,7 +117,7 @@ const RutaForm = ({ onCrearRuta, userData }) => {
         <Card.Content>
           <Title style={styles.title}>📋 Crear Nueva Ruta</Title>
           
-          {/* ✅ SECCIÓN DE RANGO - EN LA PARTE ALTA */}
+          {/* ✅ SECCIÓN DE RANGO - CON CÁLCULO CORREGIDO */}
           <View style={styles.rangoSection}>
             <Title style={styles.rangoTitle}>🔢 Rango de Códigos a Escanear</Title>
             <HelperText type="info">
@@ -68,7 +125,7 @@ const RutaForm = ({ onCrearRuta, userData }) => {
             </HelperText>
             
             <View style={styles.rangoInputs}>
-              {/* PRIMER PREFIJO */}
+              {/* PRIMER PREFIJO - INICIO DEL RANGO */}
               <View style={styles.rangoInputWrapper}>
                 <Text style={styles.rangoLabel}>Desde (Ej: 45)</Text>
                 <TextInput
@@ -91,7 +148,7 @@ const RutaForm = ({ onCrearRuta, userData }) => {
               
               <Text style={styles.rangoSeparator}>→</Text>
               
-              {/* SEGUNDO PREFIJO */}
+              {/* SEGUNDO PREFIJO - FIN DEL RANGO */}
               <View style={styles.rangoInputWrapper}>
                 <Text style={styles.rangoLabel}>Hasta (Ej: 47)</Text>
                 <TextInput
@@ -108,16 +165,19 @@ const RutaForm = ({ onCrearRuta, userData }) => {
                   placeholderTextColor="#999"
                 />
                 <Text style={styles.rangoPreview}>
-                  = {prefijo2 || '??'}000000000
+                  = {prefijo2 || '??'}999999999
                 </Text>
               </View>
             </View>
             
-            {/* PREVIEW DEL RANGO COMPLETO */}
+            {/* PREVIEW DEL RANGO COMPLETO - CORREGIDO */}
             {prefijo1.length === 2 && prefijo2.length === 2 && (
               <View style={styles.rangoPreviewContainer}>
                 <Text style={styles.rangoPreviewText}>
-                  📊 Rango válido: {codigoInicialCompleto} - {codigoFinalCompleto}
+                  📊 Rango válido: {codigoInicialPreview} - {codigoFinalPreview}
+                </Text>
+                <Text style={styles.rangoPreviewSubtext}>
+                  ({parseInt(prefijo1)}000000000 → {parseInt(prefijo2)}999999999)
                 </Text>
               </View>
             )}
@@ -131,30 +191,21 @@ const RutaForm = ({ onCrearRuta, userData }) => {
           <View style={styles.tipoSelector}>
             <Button
               mode={tipoRuta === 'destinada' ? 'contained' : 'outlined'}
-              onPress={() => {
-                setTipoRuta('destinada');
-                setNombreRuta('');
-              }}
+              onPress={() => setTipoRuta('destinada')}
               style={[styles.tipoButton, tipoRuta === 'destinada' && styles.tipoButtonActive]}
             >
               Destinada
             </Button>
             <Button
               mode={tipoRuta === 'numerica' ? 'contained' : 'outlined'}
-              onPress={() => {
-                setTipoRuta('numerica');
-                setNombreRuta('');
-              }}
+              onPress={() => setTipoRuta('numerica')}
               style={[styles.tipoButton, tipoRuta === 'numerica' && styles.tipoButtonActive]}
             >
               Número
             </Button>
             <Button
               mode={tipoRuta === 'precinto' ? 'contained' : 'outlined'}
-              onPress={() => {
-                setTipoRuta('precinto');
-                setNombreRuta('');
-              }}
+              onPress={() => setTipoRuta('precinto')}
               style={[styles.tipoButton, tipoRuta === 'precinto' && styles.tipoButtonActive]}
             >
               Precinto
@@ -204,6 +255,11 @@ const RutaForm = ({ onCrearRuta, userData }) => {
           >
             Crear Ruta
           </Button>
+          
+          {/* HELP TEXT - PERSISTENCIA */}
+          <Text style={styles.helpText}>
+            💡 Tus preferencias de prefijos se guardarán automáticamente para la próxima vez
+          </Text>
         </Card.Content>
       </Card>
     </ScrollView>

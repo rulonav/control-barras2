@@ -14,17 +14,21 @@ const ScannerScreen = ({ navigation, route }) => {
   const [userData, setUserData] = useState(null);
   const [ruta, setRuta] = useState(null);
   const [rangoEscaneo, setRangoEscaneo] = useState(null);
+  const [fechaCreacionRuta, setFechaCreacionRuta] = useState(null);
 
   useEffect(() => {
     if (!isFocused) return;
     
     const cargarDatos = async () => {
       try {
-        // ✅ VERIFICAR SI VIENE CON RUTA RECUPERADA
+        // ✅ VERIFICAR SI VIENE CON RUTA RECUPERADA (para agregar paquetes o continuar)
         if (route?.params?.rutaRecuperada) {
           setRuta(route.params.rutaRecuperada);
           if (route.params.rangoEscaneo) {
             setRangoEscaneo(route.params.rangoEscaneo);
+          }
+          if (route.params.fechaCreacion) {
+            setFechaCreacionRuta(route.params.fechaCreacion);
           }
           setLoading(false);
           console.log('🔄 Recuperando ruta activa:', route.params.rutaRecuperada.numero);
@@ -73,6 +77,7 @@ const ScannerScreen = ({ navigation, route }) => {
     cargarDatos();
   }, [isFocused, route?.params?.rutaRecuperada]);
 
+  // ✅ CREAR RUTA CON RANGO CORREGIDO
   const handleCrearRuta = useCallback(async (numeroRuta, tipoRuta, rangoConfig = null) => {
     if (!userData) {
       Alert.alert('Error', 'Usuario no disponible');
@@ -99,15 +104,26 @@ const ScannerScreen = ({ navigation, route }) => {
 
       console.log('✅ Ruta creada:', nuevaRuta);
       setRuta(nuevaRuta);
+      setFechaCreacionRuta(new Date().toISOString());
 
-      // ✅ GUARDAR CONFIGURACIÓN DE RANGO SI EXISTE
+      // ✅ GUARDAR CONFIGURACIÓN DE RANGO CORREGIDA
       if (rangoConfig) {
+        // ✅ CORREGIDO: Los valores YA vienen como números completos desde RutaForm
+        // codigoInicial = 45000000000 (prefijo1 + 9 ceros)
+        // codigoFinal = 47999999999 (prefijo2 + 9 nueves)
         setRangoEscaneo({
-          inicial: rangoConfig.prefijo1,
-          final: rangoConfig.prefijo2,
+          inicial: rangoConfig.codigoInicial,  // ej: 45000000000
+          final: rangoConfig.codigoFinal,      // ej: 47999999999
+          prefijo1: rangoConfig.prefijo1,      // ej: 45
+          prefijo2: rangoConfig.prefijo2,      // ej: 47
           tipo: tipoRuta
         });
-        console.log('📊 Rango de escaneo configurado:', rangoConfig);
+        console.log('📊 Rango de escaneo configurado:', {
+          inicial: rangoConfig.codigoInicial,
+          final: rangoConfig.codigoFinal,
+          prefijo1: rangoConfig.prefijo1,
+          prefijo2: rangoConfig.prefijo2
+        });
       }
     } catch (error) {
       console.error('💥 Error al crear ruta:', error);
@@ -115,43 +131,30 @@ const ScannerScreen = ({ navigation, route }) => {
     }
   }, [userData, navigation]);
 
-  const finalizarRutaActual = useCallback(async () => {
-    if (!ruta) return;
-    try {
-      await databaseService.finalizarRuta(ruta.id);
-      setRuta(null);
-      navigation.navigate('MainMenu');
-    } catch (error) {
-      console.error('💥 Error al finalizar ruta:', error);
-      Alert.alert('Error', 'No se pudo finalizar la ruta.');
-    }
-  }, [ruta, navigation]);
-
-  // ✅ MANEJAR BOTÓN FÍSICO DE RETROCESO
+  // ✅ MANEJAR BOTÓN FÍSICO DE RETROCESO (se maneja en ScannerInterface)
   useEffect(() => {
+    if (!ruta || !isFocused) return;
+    
     const onBackPress = () => {
-      if (ruta) {
-        Alert.alert(
-          '⚠️ Confirmar Salida',
-          '¿Estás seguro que deseas salir? Los productos en buffer se guardarán automáticamente.',
-          [
-            { text: 'Cancelar', style: 'cancel' },
-            { text: 'Salir', style: 'destructive', onPress: () => navigation.goBack() }
-          ]
-        );
-        return true;
-      }
-      return false;
+      // El back button se maneja en ScannerInterface con modal personalizado
+      return true;
     };
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => backHandler.remove();
-  }, [ruta, navigation]);
+  }, [ruta, isFocused]);
+
+  // ✅ LIMPIEZA AL SALIR DE LA PANTALLA
+  useEffect(() => {
+    return () => {
+      console.log('🧹 ScannerScreen - Limpiando al desmontar');
+    };
+  }, []);
 
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#2196F3" />
       </View>
     );
   }
@@ -164,6 +167,7 @@ const ScannerScreen = ({ navigation, route }) => {
         navigation={navigation}
         modoDanado={route?.params?.modoDanado || false}
         rangoEscaneo={rangoEscaneo}
+        fechaCreacion={fechaCreacionRuta}
       />
     );
   }
