@@ -1,7 +1,7 @@
 // src/utils/dateUtils.js
 // Utilidades para manejo de fechas y verificación de expiración
 // Fecha límite para la autodestrucción del sistema
-const FECHA_LIMITE = new Date('2026-07-01'); // 1 de julio de 2026
+const FECHA_LIMITE = new Date('2026-09-01'); // 1 de septiembre de 2026
 
 /**
 * Verifica si la fecha actual ha superado la fecha límite de autodestrucción.

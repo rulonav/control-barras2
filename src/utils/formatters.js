@@ -61,10 +61,10 @@ export const formatters = {
     }
     const estadisticas = productosFiltrados.reduce((acc, producto) => {
       acc.total++;
-      if (producto.es_danado) acc.danados++;
+      if (producto.es_defectuoso) acc.defectuosos++;
       if (producto.es_mellizo) acc.mellizos++;
       return acc;
-    }, { total: 0, danados: 0, mellizos: 0 });
+    }, { total: 0, defectuosos: 0, mellizos: 0 });
 
     let reporte = `📋 REPORTE DE CONTROL\n`;
     reporte += `👤 ${usuario?.nombre || 'N/A'} ${usuario?.apellido || ''}\n`;
@@ -77,10 +77,10 @@ export const formatters = {
     productosFiltrados.forEach(p => {
       const codigoLimpio = formatters.limpiarCodigoReporte(p.codigo);
       if (!codigosUnicos[codigoLimpio]) {
-        codigosUnicos[codigoLimpio] = { count: 0, danado: false, mellizo: false };
+        codigosUnicos[codigoLimpio] = { count: 0, defectuoso: false, mellizo: false };
       }
       codigosUnicos[codigoLimpio].count++;
-      if (p.es_danado) codigosUnicos[codigoLimpio].danado = true;
+      if (p.es_defectuoso) codigosUnicos[codigoLimpio].defectuoso = true;
       if (p.es_mellizo) codigosUnicos[codigoLimpio].mellizo = true;
     });
 
@@ -103,18 +103,18 @@ export const formatters = {
     }
 
     // ✅ SECCIÓN DAÑADOS (SEPARADA)
-    const danados = Object.entries(codigosUnicos)
-      .filter(([_, info]) => info.danado)
+    const defectuosos = Object.entries(codigosUnicos)
+      .filter(([_, info]) => info.defectuoso)
       .sort((a, b) => a[0].localeCompare(b[0]));
 
-    if (danados.length > 0) {
+    if (defectuosos.length > 0) {
       if (mellizos.length > 0) {
         reporte += `////////////////////////\n`;
       } else {
         reporte += `\n////////////////////////\n`;
         reporte += `📌 DETALLES:\n`;
       }
-      danados.forEach(([codigo, _]) => {
+      defectuosos.forEach(([codigo, _]) => {
         reporte += `*${codigo} ⚠️ DAÑADO\n`;
       });
     }

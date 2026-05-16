@@ -12,25 +12,19 @@ import { verificarFechaExpiracion } from '../utils/dateUtils';
 
 const Stack = createNativeStackNavigator();
 
-const necesitaActualizacion = () => {
-  const FECHA_LIMITE = new Date('2026-07-01');
-  const fechaActual = new Date();
-  return fechaActual >= FECHA_LIMITE;
+const screenOptions = {
+  headerStyle: { backgroundColor: '#2196F3' },
+  headerTintColor: '#fff',
+  headerTitleStyle: { fontWeight: 'bold' },
 };
 
 const AppNavigator = () => {
   const requiereActualizacion = verificarFechaExpiracion();
-  
-  console.log('🔍 [AppNavigator] Verificando expiración:', requiereActualizacion ? 'EXPIRADA' : 'VÁLIDA');
 
   return (
     <Stack.Navigator
       initialRouteName={requiereActualizacion ? "UpdateRequired" : "Login"}
-      screenOptions={{
-        headerStyle: { backgroundColor: '#2196F3' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
+      screenOptions={screenOptions}
     >
       <Stack.Screen
         name="UpdateRequired"

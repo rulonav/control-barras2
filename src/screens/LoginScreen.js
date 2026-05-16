@@ -34,28 +34,26 @@ const LoginScreen = ({ navigation }) => {
   const checkExistingUser = async () => {
     try {
       const userData = await AsyncStorage.getItem('userData');
-      console.log('📋 Verificando usuario existente...');
-      
+
       if (userData) {
         const parsedUser = JSON.parse(userData);
-        console.log('✅ Usuario encontrado en AsyncStorage:', parsedUser);
-        
+
         // ✅ VERIFICAR QUE TENGA ID VÁLIDO
         if (parsedUser.id) {
-          console.log('✅ Usuario tiene ID válido, redirigiendo...');
+
           navigation.replace('MainMenu');
         } else {
-          console.log('⚠️ Usuario sin ID de SQLite, mostrando formulario para sincronizar');
+
           setNombre(parsedUser.nombre || '');
           setApellido(parsedUser.apellido || '');
           setEstacion(parsedUser.estacion || '');
           setEmail(parsedUser.email || '');
         }
       } else {
-        console.log('👤 No hay usuario, mostrando formulario');
+
       }
     } catch (error) {
-      console.error('❌ Error verificando usuario:', error);
+
     } finally {
       setCheckingUser(false);
     }
@@ -77,13 +75,10 @@ const LoginScreen = ({ navigation }) => {
         loginTime: new Date().toISOString()
       };
 
-      console.log('💾 Guardando datos de usuario en AsyncStorage...');
-      
       // ✅ PRIMERO: Sincronizar con SQLite para obtener ID
-      console.log('💾 Sincronizando usuario con BD SQLite...');
+
       const usuarioConId = await databaseService.crearOActualizarUsuario(userData);
-      console.log('✅ Usuario en SQLite:', usuarioConId);
-      
+
       if (!usuarioConId || !usuarioConId.id) {
         throw new Error('No se pudo obtener ID de usuario de la base de datos');
       }
@@ -94,11 +89,10 @@ const LoginScreen = ({ navigation }) => {
         id: usuarioConId.id
       };
       await AsyncStorage.setItem('userData', JSON.stringify(userDataConId));
-      console.log('✅ Usuario guardado en AsyncStorage con ID:', usuarioConId.id);
-      
+
       navigation.replace('MainMenu');
     } catch (error) {
-      console.error('❌ Error guardando usuario:', error);
+
       Alert.alert('Error', 'No se pudo guardar la información del usuario: ' + error.message);
     } finally {
       setLoading(false);

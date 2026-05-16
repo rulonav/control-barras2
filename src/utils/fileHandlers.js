@@ -33,7 +33,7 @@ export const fileHandlers = {
         };
       }
     } catch (error) {
-      console.error('Error seleccionando archivo:', error);
+
       return {
         success: false,
         error: 'Error al seleccionar el archivo: ' + error.message
@@ -95,7 +95,7 @@ export const fileHandlers = {
       };
 
     } catch (error) {
-      console.error('Error leyendo archivo CSV:', error);
+
       return {
         success: false,
         error: error.message
@@ -168,7 +168,7 @@ export const fileHandlers = {
       };
 
     } catch (error) {
-      console.error('Error procesando control:', error);
+
       return {
         success: false,
         error: error.message

@@ -5,11 +5,10 @@ import { verificarFechaExpiracion } from '../utils/dateUtils';
 export const useRutaOperations = () => {
   // La creación de ruta ahora solo devuelve la ruta creada
   const crearRuta = async (rutaData) => {
-    console.log('🔷 [useRutaOperations] Iniciando crearRuta con datos:', rutaData);
 
     try {
       if (verificarFechaExpiracion()) {
-        console.warn('❌ [crearRuta] App expirada. Bloqueando creación de ruta.');
+
         Alert.alert('Actualización requerida', 'Esta versión ya no es válida. Por favor, actualice la app.');
         return null;
       }
@@ -26,11 +25,9 @@ export const useRutaOperations = () => {
 
       const usuarioId = parseInt(usuario_id, 10);
       if (isNaN(usuarioId) || usuarioId <= 0) {
-        console.error('❌ [crearRuta] usuario_id no es un número positivo:', rutaData.usuario_id);
+
         throw new Error('ID de usuario inválido');
       }
-
-      console.log('✅ [crearRuta] Validación pasada. Creando ruta para usuario_id:', usuarioId);
 
       const nuevaRuta = await databaseService.crearRuta({
         numero: String(numero).trim(), // Asegurar que sea string
@@ -38,27 +35,26 @@ export const useRutaOperations = () => {
       });
 
       if (!nuevaRuta || !nuevaRuta.id) {
-        console.error('❌ [crearRuta] La BD no devolvió una ruta válida:', nuevaRuta);
+
         throw new Error('No se pudo crear la ruta en la base de datos');
       }
 
-      console.log('🎉 [crearRuta] Ruta creada exitosamente:', nuevaRuta);
       return nuevaRuta; // Devolver la ruta creada
 
     } catch (error) {
-      console.error('💥 [crearRuta] Error crítico:', error.message || error);
+
       throw error; // Propagar el error para que ScannerScreen lo maneje
     }
   };
 
   const finalizarRuta = async (rutaId) => {
-    console.log('🔷 [useRutaOperations] Finalizando ruta ID:', rutaId);
+
     try {
       if (!rutaId) throw new Error('ID de ruta no proporcionado');
       await databaseService.finalizarRuta(rutaId);
-      console.log('✅ [useRutaOperations] Ruta finalizada exitosamente');
+
     } catch (error) {
-      console.error('💥 [useRutaOperations] Error al finalizar ruta:', error);
+
       throw error;
     }
   };

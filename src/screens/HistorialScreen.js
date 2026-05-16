@@ -25,7 +25,7 @@ const HistorialScreen = ({ navigation }) => {
       }));
       setRutas(rutasConConteo);
     } catch (error) {
-      console.error('❌ Error cargando rutas:', error);
+
       Alert.alert('Error', 'No se pudieron cargar las rutas.');
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ const HistorialScreen = ({ navigation }) => {
         fechaCreacion: ruta.fecha
       });
     } catch (error) {
-      console.error('❌ Error al cargar productos:', error);
+
       Alert.alert('Error', 'No se pudieron cargar los productos.');
     }
   };
@@ -76,7 +76,7 @@ const HistorialScreen = ({ navigation }) => {
         }
       ]);
     } catch (error) {
-      console.error('❌ Error al generar reporte:', error);
+
       Alert.alert('Error', 'No se pudo generar el reporte.');
     }
   };

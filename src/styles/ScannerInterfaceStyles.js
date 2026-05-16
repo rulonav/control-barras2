@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   activeButton: { backgroundColor: '#4CAF50', shadowColor: '#4CAF50', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 10 },
   defectButton: { backgroundColor: '#ff9800' },
   defectButtonActive: { backgroundColor: '#f44336', borderWidth: 2, borderColor: '#fff' },
-  danadoButton: { backgroundColor: '#9C27B0' },
+  defectuosoButton: { backgroundColor: '#9C27B0' },
   finalizarButton: { backgroundColor: '#ff6b6b' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
   // ✅ ESTILOS PARA MODAL DE CONFIRMACIÓN DE SALIDA

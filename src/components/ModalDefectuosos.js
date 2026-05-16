@@ -1,18 +1,18 @@
-// src/components/ModalDanados.js
+// src/components/ModalDefectuosos.js
 import React from 'react';
 import { View, ScrollView, Text, TouchableOpacity, Modal, Alert } from 'react-native';
 import { Button, Card } from 'react-native-paper';
-// ✅ CORREGIDO: Importar desde ModalDanadosStyles en lugar de ScannerScreenStyles
-import { styles } from '../styles/ModalDanadosStyles';
+// ✅ CORREGIDO: Importar desde ModalDefectuososStyles en lugar de ScannerScreenStyles
+import { styles } from '../styles/ModalDefectuososStyles';
 
-const ModalDanados = ({
+const ModalDefectuosos = ({
   visible,
   onClose,
   productos,
-  onMarcarDanado
+  onMarcarDefectuoso
 }) => {
-  // Filtrar productos no dañados
-  const productosDisponibles = productos ? productos.filter(p => !p.es_danado) : [];
+  // Filtrar productos no defectuosos
+  const productosDisponibles = productos ? productos.filter(p => !p.es_defectuoso) : [];
 
   return (
     <Modal
@@ -23,7 +23,7 @@ const ModalDanados = ({
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>⚠️ Seleccionar Producto Dañado</Text>
+          <Text style={styles.modalTitle}>⚠️ Seleccionar Producto Defectuoso</Text>
           <Text style={styles.modalSubtitle}>
             {productosDisponibles.length} productos disponibles
           </Text>
@@ -34,17 +34,17 @@ const ModalDanados = ({
                 style={styles.modalItem}
                 onPress={async () => {
                   try {
-                    const resultado = await onMarcarDanado(producto);
+                    const resultado = await onMarcarDefectuoso(producto);
                     onClose();
                     if (resultado && resultado.success) {
-                      Alert.alert('✅ Éxito', resultado.mensaje || 'Producto marcado como dañado');
+                      Alert.alert('✅ Éxito', resultado.mensaje || 'Producto marcado como defectuoso');
                     } else if (resultado && !resultado.success) {
                       Alert.alert('❌ Error', resultado.mensaje || 'No se pudo marcar el producto');
                     } else {
-                      Alert.alert('✅ Éxito', 'Producto marcado como dañado');
+                      Alert.alert('✅ Éxito', 'Producto marcado como defectuoso');
                     }
                   } catch (error) {
-                    Alert.alert('❌ Error', 'No se pudo marcar el producto como dañado: ' + error.message);
+                    Alert.alert('❌ Error', 'No se pudo marcar el producto como defectuoso: ' + error.message);
                   }
                 }}
               >
@@ -70,4 +70,4 @@ const ModalDanados = ({
   );
 };
 
-export default ModalDanados;
+export default ModalDefectuosos;

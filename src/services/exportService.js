@@ -31,14 +31,13 @@ class ExportService {
         title: `📋 Reporte Ruta ${ruta.numero} - ${usuario.estacion}`
       });
 
-      console.log('✅ Reporte compartido exitosamente');
       return {
         success: true,
         mensaje: 'Reporte compartido como texto en el mensaje',
         resultadoShare: resultado
       };
     } catch (error) {
-      console.error('❌ Error exportando reporte:', error);
+
       return {
         success: false,
         error: error.message,
@@ -50,18 +49,17 @@ class ExportService {
   // ✅ COMPARTIR CSV COMO TEXTO EN EL MENSAJE
   exportarReporteCSV = async (ruta, usuario, productos) => {
     try {
-      console.log('📤 Compartiendo CSV como texto...');
-      
+
       // ✅ CORREGIDO: Usar saltos de línea explícitos con \n real
-      let csvContent = 'Código,Fecha Escaneo,Detalle,Es Mellizo,Es Dañado\n';
+      let csvContent = 'Código,Fecha Escaneo,Detalle,Es Mellizo,Es Defectuoso\n';
       
       productos.forEach(producto => {
         const fecha = formatters.formatFecha(producto.timestamp, true);
         const detalle = (producto.detalle || '').replace(/"/g, '""'); // Escape comillas
         const esMellizo = producto.es_mellizo ? 'Sí' : 'No';
-        const esDanado = producto.es_danado ? 'Sí' : 'No';
+        const esDefectuoso = producto.es_defectuoso ? 'Sí' : 'No';
         // ✅ CORREGIDO: Saltos de línea explícitos reales
-        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDanado}"\n`;
+        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
       });
 
       // Compartir CSV como texto en el mensaje
@@ -70,14 +68,13 @@ class ExportService {
         title: `📊 CSV Ruta ${ruta.numero} - ${usuario.estacion}`
       });
 
-      console.log('✅ CSV compartido exitosamente');
       return {
         success: true,
         mensaje: 'CSV compartido como texto en el mensaje',
         resultadoShare: resultado
       };
     } catch (error) {
-      console.error('❌ Error exportando CSV:', error);
+
       return {
         success: false,
         error: error.message
@@ -88,19 +85,18 @@ class ExportService {
   // ✅ COMPARTIR AMBOS FORMATOS COMO TEXTO
   exportarAmbosFormatos = async (ruta, usuario, productos) => {
     try {
-      console.log('📤 Compartiendo ambos formatos como texto...');
-      
+
       // Generar reporte de texto
       const reporteTexto = formatters.generarReporteTexto(ruta, usuario, productos);
       
       // Generar CSV con saltos explícitos reales
-      let csvContent = 'Código,Fecha Escaneo,Detalle,Es Mellizo,Es Dañado\n';
+      let csvContent = 'Código,Fecha Escaneo,Detalle,Es Mellizo,Es Defectuoso\n';
       productos.forEach(producto => {
         const fecha = formatters.formatFecha(producto.timestamp, true);
         const detalle = (producto.detalle || '').replace(/"/g, '""');
         const esMellizo = producto.es_mellizo ? 'Sí' : 'No';
-        const esDanado = producto.es_danado ? 'Sí' : 'No';
-        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDanado}"\n`;
+        const esDefectuoso = producto.es_defectuoso ? 'Sí' : 'No';
+        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
       });
 
       // ✅ CORREGIDO: Combinar con saltos de línea explícitos reales
@@ -117,14 +113,13 @@ class ExportService {
         title: `📋 Reporte Completo Ruta ${ruta.numero}`
       });
 
-      console.log('✅ Ambos formatos compartidos exitosamente');
       return {
         success: true,
         mensaje: 'Ambos formatos compartidos como texto en el mensaje',
         resultadoShare: resultado
       };
     } catch (error) {
-      console.error('❌ Error exportando ambos formatos:', error);
+
       return {
         success: false,
         error: error.message
@@ -158,7 +153,7 @@ class ExportService {
         }
       }
     } catch (error) {
-      console.error('Error limpiando archivos antiguos:', error);
+
     }
   };
 }

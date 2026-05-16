@@ -82,7 +82,7 @@ class ScanValidationService {
       ultimoEscaneo: Date.now(),
       vecesEscaneado: (this.scanHistory.get(codigoLimpio)?.vecesEscaneado || 0) + 1
     });
-    console.log('📋 Últimos códigos:', this.ultimosCodigos);
+
   };
 
   // ✅ LIMPIAR CÓDIGO QR/JSON
@@ -124,7 +124,7 @@ class ScanValidationService {
   limpiarTodo = () => {
     this.ultimosCodigos = [];
     this.processingLocks.clear();
-    console.log('🧹 Estado de validación limpiado');
+
   };
 
   // ✅ OBTENER ESTADÍSTICAS

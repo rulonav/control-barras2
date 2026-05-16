@@ -45,7 +45,7 @@ const ModalMellizos = ({
                     {mellizosEncontrados[mellizoActualIndex].productos.map((producto, index) => (
                       <Text key={index} style={{ fontSize: 14, marginBottom: 3 }}>
                         • ID: {producto.id} - {new Date(producto.timestamp).toLocaleTimeString()}
-                        {producto.es_danado && ' ⚠️ DAÑADO'}
+                        {producto.es_defectuoso && ' ⚠️ DAÑADO'}
                       </Text>
                     ))}
                   </ScrollView>
@@ -102,7 +102,7 @@ const ModalMellizos = ({
                     • 📦 Total productos: {productos.length}
                   </Text>
                   <Text style={styles.itemDetails}>
-                    • ⚠️ Productos dañados: {productos.filter(p => p.es_danado).length}
+                    • ⚠️ Productos defectuosos: {productos.filter(p => p.es_defectuoso).length}
                   </Text>
                   <Text style={styles.itemDetails}>
                     • 🔄 Productos mellizos: {productos.filter(p => p.es_mellizo).length}
