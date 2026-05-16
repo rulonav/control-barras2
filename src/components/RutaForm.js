@@ -79,10 +79,6 @@ const RutaForm = ({ onCrearRuta, userData }) => {
     // ✅ NUEVA LÓGICA DE RANGO: El usuario ingresa un número de 2 cifras y el rango es ±1
     // Ej: Si pone 45 → rango: 44000000000 a 46000000000
     // Ej: Si pone 48 → rango: 47000000000 a 49000000000
-    const prefijoCentral = parseInt(prefijo1); // Usamos prefijo1 como el valor central
-    const prefijoInferior = prefijoCentral - 1;
-    const prefijoSuperior = prefijoCentral + 1;
-    
     const codigoInicial = `${prefijoInferior}${'0'.repeat(9)}`;  // ej: 44 + "000000000" = "44000000000"
     const codigoFinal = `${prefijoSuperior}${'0'.repeat(9)}`;    // ej: 46 + "000000000" = "46000000000"
     
