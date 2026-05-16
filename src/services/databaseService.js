@@ -15,9 +15,9 @@ class DatabaseService {
     try {
       await this.createTables();
       this.initialized = true;
-      console.log('✅ DatabaseService inicializado correctamente');
+
     } catch (error) {
-      console.error('❌ Error inicializando DatabaseService:', error);
+
       throw error;
     }
   }
@@ -65,7 +65,7 @@ class DatabaseService {
             ruta_id INTEGER NOT NULL,
             detalle TEXT,
             es_mellizo BOOLEAN DEFAULT 0,
-            es_danado BOOLEAN DEFAULT 0,
+            es_defectuoso BOOLEAN DEFAULT 0,
             es_repetido BOOLEAN DEFAULT 0,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -81,13 +81,44 @@ class DatabaseService {
             reject(error);
           }
         );
+        
+        // Crear índices para optimizar queries de duplicados y búsquedas
+        tx.executeSql(
+          `CREATE INDEX IF NOT EXISTS idx_productos_codigo ON productos(codigo)`,
+          [],
+          () => console.log('✅ Índice idx_productos_codigo creado'),
+          (_, error) => {
+            console.error('❌ Error creando índice codigo:', error);
+            return false;
+          }
+        );
+        
+        tx.executeSql(
+          `CREATE INDEX IF NOT EXISTS idx_productos_ruta_id ON productos(ruta_id)`,
+          [],
+          () => console.log('✅ Índice idx_productos_ruta_id creado'),
+          (_, error) => {
+            console.error('❌ Error creando índice ruta_id:', error);
+            return false;
+          }
+        );
+        
+        tx.executeSql(
+          `CREATE INDEX IF NOT EXISTS idx_productos_codigo_ruta ON productos(codigo, ruta_id)`,
+          [],
+          () => console.log('✅ Índice compuesto idx_productos_codigo_ruta creado'),
+          (_, error) => {
+            console.error('❌ Error creando índice compuesto:', error);
+            return false;
+          }
+        );
       });
     });
   }
 
   async crearOActualizarUsuario(userData) {
     try {
-      console.log('💾 Creando/actualizando usuario:', userData.estacion, userData.nombre);
+
       return new Promise((resolve, reject) => {
         this.db.transaction(tx => {
           tx.executeSql(
@@ -123,7 +154,7 @@ class DatabaseService {
         });
       });
     } catch (error) {
-      console.error('❌ Error en crearOActualizarUsuario:', error);
+
       throw error;
     }
   }
@@ -168,14 +199,14 @@ class DatabaseService {
         try {
           productos.forEach(p => {
             tx.executeSql(
-              `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_danado, es_repetido, timestamp)
+              `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_defectuoso, es_repetido, timestamp)
               VALUES (?, ?, ?, ?, ?, ?, ?)`,
               [
                 p.codigo,
                 p.ruta_id,
                 p.detalle || null,
                 p.es_mellizo ? 1 : 0,
-                p.es_danado ? 1 : 0,
+                p.es_defectuoso ? 1 : 0,
                 p.es_repetido ? 1 : 0,
                 p.timestamp || new Date().toISOString()
               ]
@@ -289,14 +320,14 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       this.db.transaction(tx => {
         tx.executeSql(
-          `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_danado, es_repetido, timestamp)
+          `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_defectuoso, es_repetido, timestamp)
           VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             productoData.codigo,
             productoData.ruta_id,
             productoData.detalle || null,
             productoData.es_mellizo ? 1 : 0,
-            productoData.es_danado ? 1 : 0,
+            productoData.es_defectuoso ? 1 : 0,
             productoData.es_repetido ? 1 : 0,
             productoData.timestamp || new Date().toISOString()
           ],
@@ -346,8 +377,7 @@ class DatabaseService {
   // ✅ IMPLEMENTADA: Función para comparar con archivo CSV/Excel
   async compararConArchivo(archivoData) {
     try {
-      console.log('📊 Iniciando comparación con archivo:', archivoData.nombre);
-      
+
       // Leer el archivo
       const contenido = await FileSystem.readAsStringAsync(archivoData.uri);
       const lineas = contenido.split('\n').filter(linea => linea.trim() !== '');
@@ -433,7 +463,7 @@ class DatabaseService {
         totalEscaneado: codigosEscaneados.size
       };
     } catch (error) {
-      console.error('❌ Error comparando con archivo:', error);
+
       return {
         coincidencias: 0,
         diferencias: 0,

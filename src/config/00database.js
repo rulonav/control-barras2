@@ -57,7 +57,7 @@ export const initDatabase = () => {
           ruta_id INTEGER NOT NULL,
           detalle TEXT,
           es_mellizo BOOLEAN DEFAULT 0,
-          es_danado BOOLEAN DEFAULT 0,
+          es_defectuoso BOOLEAN DEFAULT 0,
           es_repetido BOOLEAN DEFAULT 0,
           timestamp TEXT DEFAULT (datetime('now', 'localtime')),
           FOREIGN KEY (ruta_id) REFERENCES rutas (id)

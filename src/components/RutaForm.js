@@ -7,34 +7,30 @@ import { styles } from '../styles/FormRutaStyles';
 
 // ✅ CLAVES PARA PERSISTENCIA DE PREFERENCIAS
 const STORAGE_KEYS = {
-  PREFIJO1: 'ruta_prefijo1_default',
-  PREFIJO2: 'ruta_prefijo2_default',
+  PREFIJO1: 'ruta_prefijo_central_default',
   TIPO_RUTA: 'ruta_tipo_default'
 };
 
 const RutaForm = ({ onCrearRuta, userData }) => {
   const [tipoRuta, setTipoRuta] = useState('numerica');
   const [nombreRuta, setNombreRuta] = useState('');
-  // ✅ VALORES POR DEFECTO CORREGIDOS
+  // ✅ VALOR ÚNICO PARA RANGO ±1
   const [prefijo1, setPrefijo1] = useState('45');
-  const [prefijo2, setPrefijo2] = useState('47');
   const [cargandoPreferencias, setCargandoPreferencias] = useState(true);
 
   // ✅ CARGAR PREFERENCIAS GUARDADAS AL MONTAR
   useEffect(() => {
     const cargarPreferencias = async () => {
       try {
-        const [p1, p2, tipo] = await AsyncStorage.multiGet([
+        const [p1, tipo] = await AsyncStorage.multiGet([
           STORAGE_KEYS.PREFIJO1,
-          STORAGE_KEYS.PREFIJO2,
           STORAGE_KEYS.TIPO_RUTA
         ]);
 
         if (p1[1]) setPrefijo1(p1[1]);
-        if (p2[1]) setPrefijo2(p2[1]);
         if (tipo[1]) setTipoRuta(tipo[1]);
       } catch (error) {
-        console.warn('⚠️ No se pudieron cargar preferencias:', error);
+
       } finally {
         setCargandoPreferencias(false);
       }
@@ -47,25 +43,21 @@ const RutaForm = ({ onCrearRuta, userData }) => {
     if (!cargandoPreferencias) {
       AsyncStorage.multiSet([
         [STORAGE_KEYS.PREFIJO1, prefijo1],
-        [STORAGE_KEYS.PREFIJO2, prefijo2],
         [STORAGE_KEYS.TIPO_RUTA, tipoRuta]
       ]).catch(error => console.warn('⚠️ No se pudieron guardar preferencias:', error));
     }
-  }, [prefijo1, prefijo2, tipoRuta, cargandoPreferencias]);
+  }, [prefijo1, tipoRuta, cargandoPreferencias]);
 
   const handleCrear = () => {
-    // Validar prefijos (deben ser 2 dígitos numéricos)
+    // Validar prefijo (debe ser 2 dígitos numéricos)
     if (!/^\d{2}$/.test(prefijo1)) {
-      Alert.alert('Error', 'El primer prefijo debe tener exactamente 2 dígitos numéricos (Ej: 45)');
+      Alert.alert('Error', 'El número central debe tener exactamente 2 dígitos numéricos (Ej: 45)');
       return;
     }
-    if (!/^\d{2}$/.test(prefijo2)) {
-      Alert.alert('Error', 'El segundo prefijo debe tener exactamente 2 dígitos numéricos (Ej: 47)');
-      return;
-    }
-    // Validar que prefijo1 sea menor que prefijo2
-    if (parseInt(prefijo1) >= parseInt(prefijo2)) {
-      Alert.alert('Error', 'El primer prefijo debe ser menor que el segundo prefijo');
+    // Validar que el prefijo esté entre 10 y 98 (para que n-1 >= 10 y n+1 <= 99)
+    const prefijoCentral = parseInt(prefijo1);
+    if (prefijoCentral < 10 || prefijoCentral > 98) {
+      Alert.alert('Error', 'El número debe estar entre 10 y 98 para calcular el rango correctamente');
       return;
     }
     // Validar nombre de ruta
@@ -84,24 +76,32 @@ const RutaForm = ({ onCrearRuta, userData }) => {
       nombreFinal = `AM1__${soloNumeros}`;
     }
     
-    // ✅ CORREGIDO: CÁLCULO DEL RANGO
-    // prefijo1 define el inicio: 45 -> 45000000000
-    // prefijo2 define el fin: 47 -> 47999999999
-    const codigoInicial = `${prefijo1}${'0'.repeat(9)}`;  // "45" + "000000000" = "45000000000"
-    const codigoFinal = `${prefijo2}${'9'.repeat(9)}`;    // "47" + "999999999" = "47999999999"
+    // ✅ NUEVA LÓGICA DE RANGO: El usuario ingresa un número de 2 cifras y el rango es ±1
+    // Ej: Si pone 45 → rango: 44000000000 a 46000000000
+    // Ej: Si pone 48 → rango: 47000000000 a 49000000000
+    const prefijoCentral = parseInt(prefijo1); // Usamos prefijo1 como el valor central
+    const prefijoInferior = prefijoCentral - 1;
+    const prefijoSuperior = prefijoCentral + 1;
+    
+    const codigoInicial = `${prefijoInferior}${'0'.repeat(9)}`;  // ej: 44 + "000000000" = "44000000000"
+    const codigoFinal = `${prefijoSuperior}${'0'.repeat(9)}`;    // ej: 46 + "000000000" = "46000000000"
     
     // ✅ PASAR LOS PREFIJOS Y CÓDIGOS CALCULADOS CORRECTAMENTE
     onCrearRuta(nombreFinal, tipoRuta, {
-      prefijo1: parseInt(prefijo1),
-      prefijo2: parseInt(prefijo2),
-      codigoInicial: parseInt(codigoInicial),  // 45000000000
-      codigoFinal: parseInt(codigoFinal)       // 47999999999
+      prefijoCentral: prefijoCentral,        // ej: 45
+      prefijoInferior: prefijoInferior,      // ej: 44
+      prefijoSuperior: prefijoSuperior,      // ej: 46
+      codigoInicial: parseInt(codigoInicial), // 44000000000
+      codigoFinal: parseInt(codigoFinal)      // 46000000000
     });
   };
 
-  // ✅ PREVIEW DEL RANGO CORREGIDO
-  const codigoInicialPreview = `${prefijo1}${'0'.repeat(9)}`;
-  const codigoFinalPreview = `${prefijo2}${'9'.repeat(9)}`;
+  // ✅ PREVIEW DEL RANGO CON NUEVA LÓGICA ±1
+  const prefijoCentralPreview = parseInt(prefijo1) || 0;
+  const prefijoInferiorPreview = prefijoCentralPreview - 1;
+  const prefijoSuperiorPreview = prefijoCentralPreview + 1;
+  const codigoInicialPreview = `${prefijoInferiorPreview}${'0'.repeat(9)}`;
+  const codigoFinalPreview = `${prefijoSuperiorPreview}${'0'.repeat(9)}`;
 
   if (cargandoPreferencias) {
     return (
@@ -117,17 +117,17 @@ const RutaForm = ({ onCrearRuta, userData }) => {
         <Card.Content>
           <Title style={styles.title}>📋 Crear Nueva Ruta</Title>
           
-          {/* ✅ SECCIÓN DE RANGO - CON CÁLCULO CORREGIDO */}
+          {/* ✅ SECCIÓN DE RANGO - CON NUEVA LÓGICA ±1 */}
           <View style={styles.rangoSection}>
             <Title style={styles.rangoTitle}>🔢 Rango de Códigos a Escanear</Title>
             <HelperText type="info">
-              Los códigos escaneados deberán estar dentro de este rango
+              Ingresa un número de 2 cifras. El sistema validará códigos desde (n-1)000000000 hasta (n+1)000000000
             </HelperText>
             
             <View style={styles.rangoInputs}>
-              {/* PRIMER PREFIJO - INICIO DEL RANGO */}
+              {/* PREFIJO CENTRAL - ÚNICO INPUT */}
               <View style={styles.rangoInputWrapper}>
-                <Text style={styles.rangoLabel}>Desde (Ej: 45)</Text>
+                <Text style={styles.rangoLabel}>Número Central (Ej: 45)</Text>
                 <TextInput
                   style={[styles.rangoInput, styles.inputVisibleBorder]}
                   value={prefijo1}
@@ -142,42 +142,19 @@ const RutaForm = ({ onCrearRuta, userData }) => {
                   placeholderTextColor="#999"
                 />
                 <Text style={styles.rangoPreview}>
-                  = {prefijo1 || '??'}000000000
-                </Text>
-              </View>
-              
-              <Text style={styles.rangoSeparator}>→</Text>
-              
-              {/* SEGUNDO PREFIJO - FIN DEL RANGO */}
-              <View style={styles.rangoInputWrapper}>
-                <Text style={styles.rangoLabel}>Hasta (Ej: 47)</Text>
-                <TextInput
-                  style={[styles.rangoInput, styles.inputVisibleBorder]}
-                  value={prefijo2}
-                  onChangeText={(text) => {
-                    const soloNumeros = text.replace(/\D/g, '').slice(0, 2);
-                    setPrefijo2(soloNumeros);
-                  }}
-                  placeholder="47"
-                  keyboardType="numeric"
-                  maxLength={2}
-                  textAlign="center"
-                  placeholderTextColor="#999"
-                />
-                <Text style={styles.rangoPreview}>
-                  = {prefijo2 || '??'}999999999
+                  Rango: {prefijoInferiorPreview}000000000 → {prefijoSuperiorPreview}000000000
                 </Text>
               </View>
             </View>
             
-            {/* PREVIEW DEL RANGO COMPLETO - CORREGIDO */}
-            {prefijo1.length === 2 && prefijo2.length === 2 && (
+            {/* PREVIEW DEL RANGO COMPLETO - NUEVA LÓGICA */}
+            {prefijo1.length === 2 && (
               <View style={styles.rangoPreviewContainer}>
                 <Text style={styles.rangoPreviewText}>
                   📊 Rango válido: {codigoInicialPreview} - {codigoFinalPreview}
                 </Text>
                 <Text style={styles.rangoPreviewSubtext}>
-                  ({parseInt(prefijo1)}000000000 → {parseInt(prefijo2)}999999999)
+                  (Si ingresas {prefijo1}: desde {prefijoInferiorPreview}000000000 hasta {prefijoSuperiorPreview}000000000)
                 </Text>
               </View>
             )}
@@ -250,7 +227,7 @@ const RutaForm = ({ onCrearRuta, userData }) => {
             mode="contained"
             onPress={handleCrear}
             style={styles.button}
-            disabled={!nombreRuta.trim() || prefijo1.length < 2 || prefijo2.length < 2}
+            disabled={!nombreRuta.trim() || prefijo1.length < 2}
             icon="plus"
           >
             Crear Ruta

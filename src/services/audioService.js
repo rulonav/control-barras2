@@ -27,7 +27,7 @@ class AudioService {
       });
       this.initialized = true;
     } catch (error) {
-      console.error('Error inicializando audio:', error);
+
     }
   }
 
@@ -50,7 +50,7 @@ class AudioService {
               });
               this.soundObjects.success = successSound;
             } catch (error) {
-              console.warn('Error cargando sonido success:', error);
+
             }
           })(),
           (async () => {
@@ -62,16 +62,16 @@ class AudioService {
               });
               this.soundObjects.error = errorSoundObj;
             } catch (error) {
-              console.warn('Error cargando sonido error:', error);
+
             }
           })()
         ];
 
         await Promise.all(loadPromises);
         this.soundsLoaded = true;
-        console.log('✅ Sonidos cargados y listos');
+
       } catch (error) {
-        console.warn('No se pudieron cargar los sonidos:', error);
+
         this.soundsLoaded = false;
       } finally {
         this.loadPromise = null;
@@ -92,7 +92,7 @@ class AudioService {
       try {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (hapticError) {
-        console.warn('Error en háptica de éxito:', hapticError);
+
       }
     }
   }
@@ -108,7 +108,7 @@ class AudioService {
       try {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       } catch (hapticError) {
-        console.warn('Error en háptica de error:', hapticError);
+
       }
     }
   }
@@ -124,7 +124,7 @@ class AudioService {
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       } catch (hapticError) {
-        console.warn('Error en háptica de advertencia:', hapticError);
+
       }
     }
   }
@@ -148,7 +148,7 @@ class AudioService {
         await sound.playAsync();
       }
     } catch (soundError) {
-      console.warn(`Error reproduciendo sonido ${type}:`, soundError);
+
       throw soundError;
     }
   }
@@ -165,14 +165,14 @@ class AudioService {
     try {
       const unloadPromises = Object.values(this.soundObjects).map(sound =>
         sound ? sound.unloadAsync().catch(error => {
-          console.warn('Error descargando sonido:', error);
+
         }) : Promise.resolve()
       );
       await Promise.allSettled(unloadPromises);
       this.soundObjects = {};
       this.soundsLoaded = false;
     } catch (error) {
-      console.error('Error descargando sonidos:', error);
+
     }
   }
 
@@ -187,16 +187,16 @@ class AudioService {
 
   // ✅ PROBAR SONIDOS
   async testSounds() {
-    console.log('🔊 Probando sonidos...');
+
     try {
       await this.playSuccessSound();
       await new Promise(resolve => setTimeout(resolve, 500));
       await this.playErrorSound();
       await new Promise(resolve => setTimeout(resolve, 500));
       await this.playWarningSound();
-      console.log('✅ Prueba de sonidos completada');
+
     } catch (error) {
-      console.error('❌ Error en prueba de sonidos:', error);
+
     }
   }
 }

@@ -29,7 +29,6 @@ export const useMellizoOperations = () => {
 
       const productoPrincipal = obtenerProductoPrincipal(productos);
       const mellizos = obtenerMellizos(productos);
-      console.log(`🔍 Código ${codigo}: 1 principal (ID: ${productoPrincipal.id}), ${mellizos.length} mellizos`);
 
       if (accion === 'marcar_todos_mellizos') {
         for (const mellizo of mellizos) {
@@ -45,7 +44,7 @@ export const useMellizoOperations = () => {
 
       return { completado: false, error: 'Acción desconocida' };
     } catch (error) {
-      console.error('❌ Error en procesarMellizosConAccion:', error);
+
       return { completado: false, error: error.message || 'Error desconocido' };
     }
   };

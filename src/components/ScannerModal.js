@@ -4,10 +4,9 @@ import { Card, Button } from 'react-native-paper';
 import { styles } from '../styles/ScannerModalStyles';
 
 const ScannerModal = ({ visible, onClose, actions }) => {
-  console.log('🔄 [ScannerModal] Renderizando con visible:', visible);
 
   const handleAction = (onPress, label) => {
-    console.log('🔄 [ScannerModal] Acción seleccionada:', label);
+
     onPress();
   };
 

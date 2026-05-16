@@ -16,7 +16,7 @@ class BatchService {
     this.batchBuffer = [];
     this.lastFlushTime = Date.now();
     this.setupAutoFlush();
-    console.log('✅ BatchService - Inicializado para ruta:', rutaId);
+
   }
 
   // Configurar autoflush
@@ -27,7 +27,7 @@ class BatchService {
     
     this.flushTimeout = setTimeout(() => {
       if (this.batchBuffer.length > 0) {
-        console.log('⏰ BatchService - Autoflush por timeout:', this.batchBuffer.length, 'productos');
+
         this.flushBuffer();
       }
     }, this.BATCH_TIMEOUT_MS);
@@ -38,7 +38,7 @@ class BatchService {
   // Agregar producto al batch
   async agregarProducto(producto, rutaId = null) {
     if (!this.enabled) {
-      console.warn('⚠️ BatchService - Deshabilitado, guardando directamente');
+
       return await this.guardarProductoDirecto(producto, rutaId);
     }
 
@@ -50,11 +50,10 @@ class BatchService {
 
       // Agregar producto al buffer
       this.batchBuffer.push(producto);
-      console.log(`📦 BatchService - Producto agregado al batch (${this.batchBuffer.length}/${this.MAX_BATCH_SIZE})`);
 
       // Verificar si se alcanzó el tamaño máximo
       if (this.batchBuffer.length >= this.MAX_BATCH_SIZE) {
-        console.log('📊 BatchService - Tamaño máximo alcanzado, flusheando...');
+
         await this.flushBuffer();
       } else {
         // Reiniciar timeout
@@ -69,7 +68,7 @@ class BatchService {
       };
 
     } catch (error) {
-      console.error('❌ BatchService - Error agregando producto:', error);
+
       return {
         success: false,
         error: error.message
@@ -80,7 +79,7 @@ class BatchService {
   // Forzar guardado de todos los productos en el buffer
   async flushBuffer() {
     if (this.batchBuffer.length === 0) {
-      console.log('ℹ️ BatchService - Buffer vacío, nada que flushear');
+
       return { success: true, total: 0, productos: [] };
     }
 
@@ -89,8 +88,6 @@ class BatchService {
         throw new Error('No hay ruta ID definida para guardar productos');
       }
 
-      console.log('🔄 BatchService - Flusheando batch de', this.batchBuffer.length, 'productos...');
-      
       // Simular guardado en base de datos
       const productosGuardados = [...this.batchBuffer];
       
@@ -98,8 +95,6 @@ class BatchService {
       this.batchBuffer = [];
       this.lastFlushTime = Date.now();
 
-      console.log('✅ BatchService - Batch flusheado exitosamente:', productosGuardados.length, 'productos');
-      
       return {
         success: true,
         total: productosGuardados.length,
@@ -107,8 +102,7 @@ class BatchService {
       };
 
     } catch (error) {
-      console.error('❌ BatchService - Error flusheando batch:', error);
-      
+
       // En caso de error, mantener los productos en el buffer para reintentar
       return {
         success: false,
@@ -121,8 +115,7 @@ class BatchService {
   // Guardar producto directamente sin batch (modo fallback)
   async guardarProductoDirecto(producto, rutaId) {
     try {
-      console.log('🔄 BatchService - Guardando producto directamente (modo fallback)');
-      
+
       // Simular guardado directo
       const productoGuardado = {
         ...producto,
@@ -130,16 +123,14 @@ class BatchService {
         ruta_id: rutaId || this.rutaId,
         timestamp: new Date().toISOString()
       };
-      
-      console.log('✅ BatchService - Producto guardado directamente:', productoGuardado.id);
-      
+
       return {
         success: true,
         producto: productoGuardado
       };
 
     } catch (error) {
-      console.error('❌ BatchService - Error guardando directamente:', error);
+
       return {
         success: false,
         error: error.message
@@ -161,8 +152,7 @@ class BatchService {
 
   // Finalizar servicio (limpiar buffer y timeouts)
   async finalizar() {
-    console.log('🧹 BatchService - Finalizando servicio...');
-    
+
     if (this.flushTimeout) {
       clearTimeout(this.flushTimeout);
     }
@@ -174,18 +164,16 @@ class BatchService {
     
     this.batchBuffer = [];
     this.rutaId = null;
-    
-    console.log('✅ BatchService - Servicio finalizado correctamente');
+
     return { success: true };
   }
 
   // Habilitar/deshabilitar el servicio
   setEnabled(enabled) {
     this.enabled = enabled;
-    console.log(enabled ? '✅ BatchService - Habilitado' : '⚠️ BatchService - Deshabilitado');
-    
+
     if (!enabled && this.batchBuffer.length > 0) {
-      console.log('🔄 BatchService - Deshabilitando, flusheando buffer restante...');
+
       this.flushBuffer();
     }
     

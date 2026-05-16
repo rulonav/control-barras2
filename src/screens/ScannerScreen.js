@@ -31,7 +31,7 @@ const ScannerScreen = ({ navigation, route }) => {
             setFechaCreacionRuta(route.params.fechaCreacion);
           }
           setLoading(false);
-          console.log('🔄 Recuperando ruta activa:', route.params.rutaRecuperada.numero);
+
           return;
         }
 
@@ -47,7 +47,7 @@ const ScannerScreen = ({ navigation, route }) => {
 
         // ✅ VERIFICAR QUE TENGA ID VÁLIDO
         if (!usuarioParseado.id) {
-          console.log('⚠️ Usuario sin ID válido, sincronizando con BD...');
+
           const usuarioBD = await databaseService.crearOActualizarUsuario(usuarioParseado);
           if (usuarioBD && usuarioBD.id) {
             await AsyncStorage.setItem('userData', JSON.stringify({
@@ -64,9 +64,8 @@ const ScannerScreen = ({ navigation, route }) => {
           setUserData(usuarioParseado);
         }
 
-        console.log('✅ Usuario cargado:', usuarioParseado.nombre, 'ID:', usuarioParseado.id);
       } catch (error) {
-        console.error('❌ Error al cargar datos:', error);
+
         Alert.alert('Error', 'No se pudieron cargar los datos: ' + error.message);
         navigation.navigate('MainMenu');
       } finally {
@@ -91,8 +90,7 @@ const ScannerScreen = ({ navigation, route }) => {
     }
 
     try {
-      console.log('🔷 Creando ruta:', numeroRuta, 'para usuario ID:', userData.id);
-      
+
       const nuevaRuta = await databaseService.crearRuta({
         numero: numeroRuta,
         usuario_id: userData.id
@@ -102,31 +100,32 @@ const ScannerScreen = ({ navigation, route }) => {
         throw new Error('No se pudo crear la ruta en la base de datos');
       }
 
-      console.log('✅ Ruta creada:', nuevaRuta);
       setRuta(nuevaRuta);
       setFechaCreacionRuta(new Date().toISOString());
 
-      // ✅ GUARDAR CONFIGURACIÓN DE RANGO CORREGIDA
+      // ✅ GUARDAR CONFIGURACIÓN DE RANGO CON NUEVA LÓGICA ±1
       if (rangoConfig) {
-        // ✅ CORREGIDO: Los valores YA vienen como números completos desde RutaForm
-        // codigoInicial = 45000000000 (prefijo1 + 9 ceros)
-        // codigoFinal = 47999999999 (prefijo2 + 9 nueves)
+        // ✅ NUEVA LÓGICA: Los valores vienen calculados desde RutaForm
+        // codigoInicial = 44000000000 (prefijoInferior + 9 ceros)
+        // codigoFinal = 46000000000 (prefijoSuperior + 9 ceros)
         setRangoEscaneo({
-          inicial: rangoConfig.codigoInicial,  // ej: 45000000000
-          final: rangoConfig.codigoFinal,      // ej: 47999999999
-          prefijo1: rangoConfig.prefijo1,      // ej: 45
-          prefijo2: rangoConfig.prefijo2,      // ej: 47
+          inicial: rangoConfig.codigoInicial,    // ej: 44000000000
+          final: rangoConfig.codigoFinal,        // ej: 46000000000
+          prefijoCentral: rangoConfig.prefijoCentral,  // ej: 45
+          prefijoInferior: rangoConfig.prefijoInferior, // ej: 44
+          prefijoSuperior: rangoConfig.prefijoSuperior, // ej: 46
           tipo: tipoRuta
         });
         console.log('📊 Rango de escaneo configurado:', {
           inicial: rangoConfig.codigoInicial,
           final: rangoConfig.codigoFinal,
-          prefijo1: rangoConfig.prefijo1,
-          prefijo2: rangoConfig.prefijo2
+          prefijoCentral: rangoConfig.prefijoCentral,
+          prefijoInferior: rangoConfig.prefijoInferior,
+          prefijoSuperior: rangoConfig.prefijoSuperior
         });
       }
     } catch (error) {
-      console.error('💥 Error al crear ruta:', error);
+
       Alert.alert('Error', 'No se pudo crear la ruta: ' + error.message);
     }
   }, [userData, navigation]);
@@ -147,7 +146,7 @@ const ScannerScreen = ({ navigation, route }) => {
   // ✅ LIMPIEZA AL SALIR DE LA PANTALLA
   useEffect(() => {
     return () => {
-      console.log('🧹 ScannerScreen - Limpiando al desmontar');
+
     };
   }, []);
 
@@ -165,7 +164,7 @@ const ScannerScreen = ({ navigation, route }) => {
         ruta={ruta}
         userData={userData}
         navigation={navigation}
-        modoDanado={route?.params?.modoDanado || false}
+        modoDefectuoso={route?.params?.modoDefectuoso || false}
         rangoEscaneo={rangoEscaneo}
         fechaCreacion={fechaCreacionRuta}
       />

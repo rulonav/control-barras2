@@ -52,7 +52,7 @@ const ControlListScreen = ({ navigation }) => {
         );
       }
     } catch (error) {
-      console.error('Error seleccionando archivo:', error);
+
       Alert.alert('Error', 'No se pudo seleccionar el archivo');
     } finally {
       setLoading(false);
@@ -66,8 +66,7 @@ const ControlListScreen = ({ navigation }) => {
       
       if (archivoSeleccionado) {
         const resultado = await databaseService.compararConArchivo(archivoSeleccionado);
-        console.log('📊 Resultado del control:', resultado);
-        
+
         setResultadoControl(resultado);
         setProcesoCompletado(true);
         
@@ -81,7 +80,7 @@ const ControlListScreen = ({ navigation }) => {
         );
       }
     } catch (error) {
-      console.error('❌ Error en proceso de control:', error);
+
       Alert.alert(
         'Error en Control',
         'No se pudo completar el proceso de control: ' + error.message,

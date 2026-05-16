@@ -13,13 +13,12 @@ export const useScanner = ({
   setUltimoResultado,
   setLoading
 }) => {
-  console.log('🔄 [useScanner] Hook cargado con ruta:', ruta?.numero);
-  
+
   const [scannerActive, setScannerActive] = useState(false);
   const [revisandoMellizos, setRevisandoMellizos] = useState(false);
   const [mellizoActual, setMellizoActual] = useState(null);
-  const [modoDanado, setModoDanado] = useState(false);
-  const [showModalDanados, setShowModalDanados] = useState(false);
+  const [modoDefectuoso, setModoDefectuoso] = useState(false);
+  const [showModalDefectuosos, setShowModalDefectuosos] = useState(false);
   const [ultimoResultadoLocal, setUltimoResultadoLocal] = useState(null);
   const [ultimoCodigo, setUltimoCodigo] = useState('');
   const [ultimoTimestamp, setUltimoTimestamp] = useState(0);
@@ -31,16 +30,16 @@ export const useScanner = ({
   const scannerActiveRef = useRef(scannerActive);
   const ultimoCodigoRef = useRef(ultimoCodigo);
   const ultimoTimestampRef = useRef(ultimoTimestamp);
-  const modoDanadoRef = useRef(modoDanado);
-  const showModalDanadosRef = useRef(showModalDanados);
+  const modoDefectuosoRef = useRef(modoDefectuoso);
+  const showModalDefectuososRef = useRef(showModalDefectuosos);
 
   useEffect(() => { scannerActiveRef.current = scannerActive; }, [scannerActive]);
   useEffect(() => { ultimoCodigoRef.current = ultimoCodigo; }, [ultimoCodigo]);
   useEffect(() => { ultimoTimestampRef.current = ultimoTimestamp; }, [ultimoTimestamp]);
-  useEffect(() => { modoDanadoRef.current = modoDanado; }, [modoDanado]);
-  useEffect(() => { showModalDanadosRef.current = showModalDanados; }, [showModalDanados]);
+  useEffect(() => { modoDefectuosoRef.current = modoDefectuoso; }, [modoDefectuoso]);
+  useEffect(() => { showModalDefectuososRef.current = showModalDefectuosos; }, [showModalDefectuosos]);
 
-  const { procesarEscaneo, marcarProductoComoDanado, marcarProductoComoMellizo } = useProductOperations({
+  const { procesarEscaneo, marcarProductoComoDefectuoso, marcarProductoComoMellizo } = useProductOperations({
     ruta,
     productos,
     setProductos,
@@ -48,12 +47,13 @@ export const useScanner = ({
     setLoading
   });
 
+  const { procesarMellizosConAccion } = useMellizoOperations();
+
   // ✅ MANEJO DE ESCANEO PRINCIPAL
   const handleScan = useCallback(async (codigo) => {
-    console.log('🔍 [useScanner] handleScan llamado con código:', codigo);
-    
+
     if (!codigo) {
-      console.log('❌ [useScanner] Código inválido');
+
       return;
     }
 
@@ -62,7 +62,7 @@ export const useScanner = ({
     
     // ✅ EVITAR ESCANEOS DEMASIADO RÁPIDOS (<100ms)
     if (tiempoTranscurrido < 100) {
-      console.log('⏱️ [useScanner] Escaneo demasiado rápido, ignorando');
+
       await audioService.playErrorSound();
       return;
     }
@@ -72,7 +72,7 @@ export const useScanner = ({
     setVelocidadEscaneo(tiempoTranscurrido);
 
     try {
-      const resultado = await procesarEscaneo(codigo, modoDanadoRef.current);
+      const resultado = await procesarEscaneo(codigo, modoDefectuosoRef.current);
       setUltimoResultadoLocal(resultado);
       
       if (setUltimoResultado) {
@@ -91,7 +91,7 @@ export const useScanner = ({
         setTimeout(() => setFlashColor('#000000'), 100);
       }
     } catch (error) {
-      console.error('❌ [useScanner] Error procesando escaneo:', error);
+
       const resultadoError = {
         success: false,
         mensaje: error.message || 'Error desconocido',
@@ -107,15 +107,13 @@ export const useScanner = ({
 
   // ✅ MANEJO DE ACCIONES DE MELLIZOS
   const manejarAccionMellizos = useCallback(async (accion) => {
-    console.log('🔄 [useScanner] manejarAccionMellizos llamado con acción:', accion);
-    
+
     if (!mellizoActual) {
-      console.log('⚠️ [useScanner] No hay mellizo actual para procesar');
+
       return;
     }
 
     try {
-      const { procesarMellizosConAccion } = useMellizoOperations();
       const { completado, mensaje, error } = await procesarMellizosConAccion(accion, mellizoActual);
       
       if (completado) {
@@ -127,31 +125,31 @@ export const useScanner = ({
         Alert.alert('❌ Error', error || mensaje);
       }
     } catch (error) {
-      console.error('❌ [useScanner] Error manejando acción de mellizos:', error);
+
       Alert.alert('❌ Error', error.message);
     }
-  }, [mellizoActual]);
+  }, [mellizoActual, procesarMellizosConAccion]);
 
   // ✅ SALTAR REVISIÓN DE MELLIZOS
   const saltarRevisionMellizos = useCallback(() => {
-    console.log('🔄 [useScanner] saltarRevisionMellizos llamado');
+
     setRevisandoMellizos(false);
     setMellizoActual(null);
   }, []);
 
   // ✅ MODAL DE PRODUCTOS DAÑADOS
-  const abrirModalProductosDanados = useCallback(() => {
-    console.log('🔄 [useScanner] abrirModalProductosDanados llamado');
-    setShowModalDanados(true);
+  const abrirModalProductosDefectuosos = useCallback(() => {
+
+    setShowModalDefectuosos(true);
   }, []);
 
-  const cerrarModalProductosDanados = useCallback(() => {
-    setShowModalDanados(false);
+  const cerrarModalProductosDefectuosos = useCallback(() => {
+    setShowModalDefectuosos(false);
   }, []);
 
   // ✅ TOGGLE MODO DEFECTUOSO
-  const toggleModoDanado = useCallback(() => {
-    setModoDanado(prev => !prev);
+  const toggleModoDefectuoso = useCallback(() => {
+    setModoDefectuoso(prev => !prev);
   }, []);
 
   return {
@@ -161,10 +159,10 @@ export const useScanner = ({
     setRevisandoMellizos,
     mellizoActual,
     setMellizoActual,
-    modoDanado,
-    setModoDanado,
-    showModalDanados,
-    setShowModalDanados,
+    modoDefectuoso,
+    setModoDefectuoso,
+    showModalDefectuosos,
+    setShowModalDefectuosos,
     ultimoResultado: ultimoResultadoLocal,
     ultimoCodigo,
     ultimoTimestamp,
@@ -174,10 +172,10 @@ export const useScanner = ({
     handleScan,
     manejarAccionMellizos,
     saltarRevisionMellizos,
-    abrirModalProductosDanados,
-    cerrarModalProductosDanados,
-    toggleModoDanado,
-    marcarProductoComoDanado,
+    abrirModalProductosDefectuosos,
+    cerrarModalProductosDefectuosos,
+    toggleModoDefectuoso,
+    marcarProductoComoDefectuoso,
     marcarProductoComoMellizo,
   };
 };

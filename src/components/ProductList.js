@@ -7,7 +7,7 @@ const ProductList = ({ productos = [], onProductPress }) => {
   const renderProductItem = ({ item, index }) => {
     // ✅ Validación robusta
     if (!item || typeof item !== 'object') {
-      console.warn('⚠️ [ProductList] Item inválido:', item, 'índice:', index);
+
       return null;
     }
 

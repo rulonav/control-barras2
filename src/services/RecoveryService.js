@@ -27,13 +27,13 @@ class RecoveryService {
             timestamp: data.timestamp
           };
         } else {
-          console.log('🧹 Punto de recuperación expirado, limpiando...');
+
           await this.limpiarRecuperacion();
         }
       }
       return { shouldResume: false };
     } catch (error) {
-      console.warn('⚠️ Error en checkPendingSession:', error.message);
+
       return { shouldResume: false };
     }
   }
@@ -41,8 +41,7 @@ class RecoveryService {
   // ✅ INICIALIZAR RECUPERACIÓN PARA UNA NUEVA RUTA
   async inicializarRecuperacion(ruta) {
     try {
-      console.log('🔄 RecoveryService - Inicializando recuperación para ruta:', ruta.id);
-      
+
       // Limpiar cualquier recuperación anterior
       await this.limpiarRecuperacion();
 
@@ -58,10 +57,9 @@ class RecoveryService {
       // Inicializar buffer vacío para esta ruta
       await AsyncStorage.setItem(`${this.BUFFER_KEY_PREFIX}${ruta.id}`, JSON.stringify([]));
 
-      console.log('✅ RecoveryService - Recuperación inicializada para ruta:', ruta.id);
       return { success: true, rutaId: ruta.id };
     } catch (error) {
-      console.error('❌ RecoveryService - Error inicializando recuperación:', error);
+
       throw error;
     }
   }
@@ -69,12 +67,11 @@ class RecoveryService {
   // ✅ GUARDAR PRODUCTO EN RECUPERACIÓN
   async guardarProducto(producto) {
     try {
-      console.log('💾 RecoveryService - Guardando producto en recuperación:', producto.codigo);
-      
+
       // Obtener ruta activa
       const rutaActiva = await this.obtenerRutaActiva();
       if (!rutaActiva) {
-        console.warn('⚠️ RecoveryService - No hay ruta activa para guardar producto');
+
         return { success: false, error: 'No hay ruta activa' };
       }
 
@@ -88,14 +85,14 @@ class RecoveryService {
       if (!productoExistente) {
         productosBuffer.push(producto);
         await AsyncStorage.setItem(bufferKey, JSON.stringify(productosBuffer));
-        console.log(`✅ RecoveryService - Producto guardado. Total en buffer: ${productosBuffer.length}`);
+
       } else {
-        console.log('⚠️ RecoveryService - Producto duplicado no guardado en recuperación');
+
       }
 
       return { success: true, total: productosBuffer.length };
     } catch (error) {
-      console.error('❌ RecoveryService - Error guardando producto:', error);
+
       return { success: false, error: error.message };
     }
   }
@@ -109,7 +106,7 @@ class RecoveryService {
       }
       return null;
     } catch (error) {
-      console.error('❌ RecoveryService - Error obteniendo ruta activa:', error);
+
       return null;
     }
   }
@@ -117,12 +114,11 @@ class RecoveryService {
   // ✅ RECUPERAR PRODUCTOS DE SESIÓN ANTERIOR
   async recuperarProductos() {
     try {
-      console.log('🔄 RecoveryService - Verificando recuperación...');
-      
+
       // Obtener ruta activa
       const rutaActiva = await this.obtenerRutaActiva();
       if (!rutaActiva) {
-        console.log('ℹ️ RecoveryService - No hay ruta activa para recuperar');
+
         return { productos: [], punto: null, ruta: null };
       }
 
@@ -131,12 +127,11 @@ class RecoveryService {
       const bufferGuardado = await AsyncStorage.getItem(bufferKey);
       
       if (!bufferGuardado || bufferGuardado === '[]') {
-        console.log('ℹ️ RecoveryService - Sin productos para recuperar');
+
         return { productos: [], punto: null, ruta: rutaActiva };
       }
 
       const productosRecuperados = JSON.parse(bufferGuardado);
-      console.log(`✅ RecoveryService - Recuperados ${productosRecuperados.length} productos`);
 
       // Crear punto de recuperación
       const puntoRecuperacion = {
@@ -152,7 +147,7 @@ class RecoveryService {
         ruta: rutaActiva
       };
     } catch (error) {
-      console.error('❌ RecoveryService - Error recuperando productos:', error);
+
       return { productos: [], punto: null, ruta: null };
     }
   }
@@ -160,8 +155,7 @@ class RecoveryService {
   // ✅ LIMPIAR RECUPERACIÓN COMPLETA
   async limpiarRecuperacion() {
     try {
-      console.log('🧹 RecoveryService - Limpiando recuperación...');
-      
+
       // Obtener ruta activa para limpiar su buffer específico
       const rutaActiva = await this.obtenerRutaActiva();
       
@@ -177,10 +171,10 @@ class RecoveryService {
       }
 
       await AsyncStorage.multiRemove(keysToRemove);
-      console.log('✅ RecoveryService - Recuperación limpiada completamente');
+
       return { success: true };
     } catch (error) {
-      console.error('❌ RecoveryService - Error limpiando recuperación:', error);
+
       return { success: false, error: error.message };
     }
   }

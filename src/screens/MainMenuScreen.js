@@ -30,22 +30,19 @@ const MainMenuScreen = ({ navigation }) => {
       const usuarioParseado = JSON.parse(userData);
       setUsuario(usuarioParseado);
       if (!usuarioParseado.id) { console.log('⚠️ Usuario sin ID válido, volviendo a Login'); navigation.replace('Login'); return; }
-      console.log('✅ Usuario cargado con ID:', usuarioParseado.id);
-      
+
       try {
         const rutasActivas = await databaseService.obtenerRutasUsuario(usuarioParseado.id);
         const rutaActiva = rutasActivas?.find(r => !r.finalizada);
         
         if (rutaActiva) {
-          console.log('🔄 Ruta activa encontrada:', rutaActiva.numero, 'ID:', rutaActiva.id);
-          
+
           // ✅ VERIFICAR SI LA RUTA TIENE PRODUCTOS
           const productos = await databaseService.obtenerProductosRuta(rutaActiva.id);
-          console.log(`📦 Ruta ${rutaActiva.numero} tiene ${productos.length} productos`);
-          
+
           if (productos.length === 0) {
             // ✅ RUTA VACÍA: ELIMINAR AUTOMÁTICAMENTE
-            console.log('🗑️ Ruta vacía, eliminando automáticamente');
+
             await databaseService.eliminarRuta(rutaActiva.id);
             setLoading(false);
             return;
@@ -71,7 +68,7 @@ const MainMenuScreen = ({ navigation }) => {
                       await databaseService.finalizarRuta(rutaActiva.id);
                       navigation.navigate('Reporte', { ruta: rutaActiva, productos });
                     } catch (error) {
-                      console.error('❌ Error al finalizar ruta:', error);
+
                       Alert.alert('Error', 'No se pudo finalizar la ruta');
                       setLoading(false);
                     }
@@ -90,10 +87,10 @@ const MainMenuScreen = ({ navigation }) => {
           }
         }
       } catch (error) {
-        console.error('❌ Error al verificar ruta activa:', error);
+
       }
     } catch (error) {
-      console.error('❌ Error cargando usuario:', error);
+
       navigation.replace('Login');
     } finally {
       setLoading(false);

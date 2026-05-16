@@ -26,9 +26,9 @@ const ReporteScreen = ({ route, navigation }) => {
       const fechaRutaLocal = new Date(fechaRuta.getFullYear(), fechaRuta.getMonth(), fechaRuta.getDate());
       const esHoy = hoy.getTime() === fechaRutaLocal.getTime();
       setEsDelDia(esHoy);
-      console.log('📅 Verificación fecha - Ruta:', fechaRutaLocal, 'Hoy:', hoy, 'Es del día:', esHoy);
+
     } catch (error) {
-      console.error('❌ Error al verificar fecha:', error);
+
       setEsDelDia(false);
     }
   }, [fechaCreacion, ruta?.fecha]);
@@ -40,9 +40,9 @@ const ReporteScreen = ({ route, navigation }) => {
       setCargando(true);
       const productosActualizados = await databaseService.obtenerProductosRuta(ruta.id);
       setProductos(productosActualizados);
-      console.log('🔄 Productos recargados desde BD:', productosActualizados.length);
+
     } catch (error) {
-      console.error('❌ Error cargando productos:', error);
+
     } finally {
       setCargando(false);
     }
@@ -90,7 +90,7 @@ const ReporteScreen = ({ route, navigation }) => {
 
   // ✅ AGREGAR PAQUETES: Navegar a Scanner con rutaRecuperada
   const agregarPaquetes = () => {
-    console.log('🔷 Navegando a Scanner para agregar paquetes. Ruta:', ruta?.numero, 'ID:', ruta?.id);
+
     navigation.navigate('Scanner', {
       rutaRecuperada: { ...ruta, finalizada: false },
       limitesEscaneo: { inferior: limiteInferior/1000000000, superior: limiteSuperior/1000000000 },
@@ -98,10 +98,10 @@ const ReporteScreen = ({ route, navigation }) => {
     });
   };
 
-  const agregarDanados = () => {
+  const agregarDefectuosos = () => {
     navigation.navigate('Scanner', {
       rutaRecuperada: { ...ruta, finalizada: false },
-      modoDanado: true,
+      modoDefectuoso: true,
       limitesEscaneo: { inferior: limiteInferior/1000000000, superior: limiteSuperior/1000000000 }
     });
   };
@@ -122,12 +122,12 @@ const ReporteScreen = ({ route, navigation }) => {
     if (codigoNum < limiteInferior || codigoNum > limiteSuperior) return null;
     const countMellizos = productos.filter(p => p.codigo === codigo).length;
     const esMellizo = countMellizos > 1;
-    const esDanado = Boolean(item.es_danado);
+    const esDefectuoso = Boolean(item.es_defectuoso);
     return (
       <View style={styles.row}>
         <View style={styles.info}>
           <Text style={styles.codigo}>{codigo}</Text>
-          {esDanado && <Text style={styles.badgeDanado}>⚠️ DAÑADO</Text>}
+          {esDefectuoso && <Text style={styles.badgeDefectuoso}>⚠️ DAÑADO</Text>}
           {esMellizo && <Text style={styles.badgeMellizo}>- Mellizo {countMellizos}</Text>}
         </View>
         {esMellizo && esDelDia && (<Button mode="text" textColor="#f44336" onPress={() => limpiarMellizo(item.id)}>Limpiar</Button>)}
@@ -159,7 +159,7 @@ const ReporteScreen = ({ route, navigation }) => {
       {esDelDia && (
         <>
           <FAB icon="package-variant" label="Agregar Paquetes" onPress={agregarPaquetes} style={[styles.fab, { bottom: 180 }]} color="#fff" />
-          <FAB icon="alert" label="Agregar Dañados" onPress={agregarDanados} style={[styles.fab, { bottom: 130 }]} color="#fff" />
+          <FAB icon="alert" label="Agregar Defectuosos" onPress={agregarDefectuosos} style={[styles.fab, { bottom: 130 }]} color="#fff" />
           <FAB icon="delete" label="Limpiar Mellizos" onPress={limpiarTodosMellizos} style={[styles.fab, { bottom: 80 }]} color="#fff" />
         </>
       )}
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
   info: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
   codigo: { fontSize: 16, color: '#333', marginRight: 8 },
-  badgeDanado: { color: '#f44336', fontWeight: 'bold', fontSize: 12 },
+  badgeDefectuoso: { color: '#f44336', fontWeight: 'bold', fontSize: 12 },
   badgeMellizo: { color: '#ff9800', fontWeight: 'bold', fontSize: 12, marginLeft: 4 },
   fab: { position: 'absolute', margin: 16, right: 0, bottom: 16, backgroundColor: '#2196F3' },
 });

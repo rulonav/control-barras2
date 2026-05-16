@@ -25,7 +25,7 @@ class BarcodeService {
     
     // Validar que sean números válidos y que inferior < superior
     if (isNaN(inf) || isNaN(sup) || inf >= sup) {
-      console.warn('⚠️ Límites inválidos recibidos:', { inferior, superior });
+
       return false;
     }
     
@@ -34,9 +34,7 @@ class BarcodeService {
     this.limiteInferior = inf;
     this.limiteSuperior = sup;
     this.limitesConfigurados = true;
-    
-    console.log(`🔧 Límites de escaneo configurados: ${this.limiteInferior} - ${this.limiteSuperior}`);
-    console.log(`📊 Rango legible: ${this.limiteInferior/1000000000} - ${this.limiteSuperior/1000000000}`);
+
     return true;
   }
 
@@ -59,11 +57,10 @@ class BarcodeService {
    * @returns {object} { valido: boolean, mensaje: string }
    */
   validarCodigo = (codigoLimpio) => {
-    console.log('🔍 Validando código:', codigoLimpio);
-    
+
     // 1. Verificar longitud exacta de 11 dígitos
     if (codigoLimpio.length !== 11) {
-      console.log(`❌ Código inválido: debe tener 11 dígitos, tiene ${codigoLimpio.length}`);
+
       return {
         valido: false,
         mensaje: `❌ Código debe tener 11 dígitos (tiene ${codigoLimpio.length})`
@@ -72,7 +69,7 @@ class BarcodeService {
     
     // 2. Verificar que sea completamente numérico
     if (!/^\d+$/.test(codigoLimpio)) {
-      console.log('❌ Código inválido: contiene caracteres no numéricos');
+
       return {
         valido: false,
         mensaje: '❌ Código debe contener solo números'
@@ -84,8 +81,7 @@ class BarcodeService {
       const codigoNumero = parseInt(codigoLimpio, 10);
       
       if (codigoNumero < this.limiteInferior || codigoNumero > this.limiteSuperior) {
-        console.log(`❌ Código fuera de rango: ${codigoNumero}`);
-        console.log(`📊 Rango válido: ${this.limiteInferior} - ${this.limiteSuperior}`);
+
         return {
           valido: false,
           mensaje: `❌ Código fuera de rango (${this.limiteInferior/1000000000}-${this.limiteSuperior/1000000000})`
@@ -93,10 +89,9 @@ class BarcodeService {
       }
     } else {
       // ⚠️ Advertencia solo en desarrollo - en producción podría ser silencioso
-      console.log('⚠️ Límites no configurados, omitiendo validación de rango');
+
     }
-    
-    console.log('✅ Código válido');
+
     return {
       valido: true,
       mensaje: '✅ Código válido'
@@ -110,14 +105,13 @@ class BarcodeService {
    * @throws {Error} Si el código no es válido
    */
   limpiarCodigo = (codigo) => {
-    console.log('🔍 Limpiando código:', codigo);
-    
+
     try {
       let codigoFinal = '';
       
       // Caso A: Objeto JSON como {"id":"45682736556","t":"lm"}
       if (typeof codigo === 'object' && codigo !== null && codigo.id) {
-        console.log('✅ Es objeto JSON, extrayendo ID:', codigo.id);
+
         codigoFinal = codigo.id.toString();
       }
       // Caso B: String que podría ser JSON
@@ -125,7 +119,7 @@ class BarcodeService {
         try {
           const parsed = JSON.parse(codigo);
           if (parsed && parsed.id) {
-            console.log('✅ Es string JSON, extrayendo ID:', parsed.id);
+
             codigoFinal = parsed.id.toString();
           } else {
             // No es JSON, limpiar caracteres no numéricos
@@ -140,9 +134,7 @@ class BarcodeService {
       else {
         codigoFinal = codigo.toString().replace(/^id/, '').replace(/[^0-9]/g, '');
       }
-      
-      console.log(`🔧 Código limpiado: "${codigo}" → "${codigoFinal}"`);
-      
+
       // ✅ Validar el código limpio (esto lanza error si no es válido)
       const validacion = this.validarCodigo(codigoFinal);
       if (!validacion.valido) {
@@ -152,7 +144,7 @@ class BarcodeService {
       return codigoFinal;
       
     } catch (error) {
-      console.error('❌ Error limpiando/validando código:', error);
+
       // Re-lanzar para que ScannerInterface maneje el error con audio/feedback
       throw error;
     }
@@ -173,7 +165,7 @@ class BarcodeService {
     const timestamp = this.procesados.get(codigo);
     
     if (timestamp && (ahora - timestamp) < this.tiempoLimite) {
-      console.log(`🔄 Código reciente: ${codigo} (hace ${ahora - timestamp}ms)`);
+
       return true;
     }
     return false;
@@ -188,7 +180,7 @@ class BarcodeService {
       this.procesados = new Map();
     }
     this.procesados.set(codigo, Date.now());
-    console.log(`📝 Código registrado como procesado: ${codigo}`);
+
     this.limpiarProcesadosAntiguos();
   };
 
@@ -211,7 +203,7 @@ class BarcodeService {
   limpiarProcesados = () => {
     if (this.procesados) {
       this.procesados.clear();
-      console.log('🧹 Todos los códigos procesados limpiados para nueva ruta');
+
     }
   };
 
@@ -222,7 +214,7 @@ class BarcodeService {
     this.limiteInferior = null;
     this.limiteSuperior = null;
     this.limitesConfigurados = false;
-    console.log('🔄 Límites de escaneo reseteados');
+
   };
 }
 
