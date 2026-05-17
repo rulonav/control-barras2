@@ -232,10 +232,12 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   const ManualFlashMode = { off: 'off', torch: 'torch', on: 'on' };
 
   // Intentar obtener constantes de expo-camera, sino usar las manuales
-  let CameraType, BarcodeType, FlashMode;
+  let CameraType = ManualCameraType;
+  let BarcodeType = ManualBarcodeFormat;
+  let FlashMode = ManualFlashMode;
   
   try {
-    if (Camera.Constants?.Type) {
+    if (Camera.Constants && Camera.Constants.Type) {
       CameraType = Camera.Constants.Type;
       console.log('🔧 [ScannerInterface] CameraType: expo-camera Constants');
     } else {
@@ -243,10 +245,10 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
       console.log('🔧 [ScannerInterface] CameraType: USANDO MANUAL');
     }
     
-    if (Camera.Constants?.BarcodeFormat) {
+    if (Camera.Constants && Camera.Constants.BarcodeFormat) {
       BarcodeType = Camera.Constants.BarcodeFormat;
       console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarcodeFormat');
-    } else if (Camera.Constants?.BarCodeTypes) {
+    } else if (Camera.Constants && Camera.Constants.BarCodeTypes) {
       BarcodeType = Camera.Constants.BarCodeTypes;
       console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarCodeTypes');
     } else {
@@ -254,7 +256,7 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
       console.log('🔧 [ScannerInterface] BarcodeType: USANDO MANUAL');
     }
     
-    if (Camera.Constants?.FlashMode) {
+    if (Camera.Constants && Camera.Constants.FlashMode) {
       FlashMode = Camera.Constants.FlashMode;
       console.log('🔧 [ScannerInterface] FlashMode: expo-camera Constants');
     } else {
