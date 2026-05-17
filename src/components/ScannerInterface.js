@@ -175,8 +175,12 @@ const ModalDefectuosos = ({ visible, productos, onClose, onConfirmar }) => {
 const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, rangoEscaneo = null }) => {
   console.log('📱 [ScannerInterface] Montando componente para ruta:', ruta?.nombre || ruta?.id);
   
+  // ✅ DEFINICIÓN TEMPRANA DE FlashMode para el useState
+  const ManualFlashModeEarly = { off: 'off', torch: 'torch', on: 'on' };
+  const FlashModeEarly = Camera.Constants?.FlashMode || ManualFlashModeEarly;
+  
   // Estados principales
-  const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+  const [flash, setFlash] = useState(FlashModeEarly.off);
   const [totalGuardados, setTotalGuardados] = useState(0);
   const [ultimoResultado, setUltimoResultado] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
@@ -201,10 +205,11 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   const modoDefectuosoRef = useRef(modoDefectuosoLocal);
   const rutaIdRef = useRef(ruta.id);
   
-  // Constantes de Camera - Compatibilidad con diferentes versiones
-  const CameraType = Camera.Constants?.Type || { back: 'back', front: 'front' };
-  // En expo-camera 13.x, BarCodeTypes fue reemplazado por BarcodeFormat
-  const BarcodeType = Camera.Constants?.BarcodeFormat || Camera.Constants?.BarCodeTypes || {
+  // ✅ DEFINICIÓN MANUAL DE CONSTANTES PARA COMPATIBILIDAD
+  // Esto evita errores con diferentes versiones de expo-camera
+  const ManualCameraType = { back: 'back', front: 'front' };
+  
+  const ManualBarcodeFormat = {
     barcode128: 'barcode128',
     barcode39: 'barcode39',
     barcode93: 'barcode93',
@@ -220,14 +225,22 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
     pdf417: 'pdf417',
     qr: 'qr',
     datamatrix: 'datamatrix',
-    aztec: 'aztec'
+    aztec: 'aztec',
+    code128: 'code128'
   };
-  const FlashMode = Camera.Constants?.FlashMode || { off: 'off', torch: 'torch', on: 'on' };
 
-  console.log('🔧 [ScannerInterface] Estados inicializados');
-  console.log('🔧 [ScannerInterface] CameraType:', CameraType ? 'OK' : 'UNDEFINED');
-  console.log('🔧 [ScannerInterface] BarcodeType:', BarcodeType ? 'OK' : 'UNDEFINED');
-  console.log('🔧 [ScannerInterface] FlashMode:', FlashMode ? 'OK' : 'UNDEFINED');
+  const ManualFlashMode = { off: 'off', torch: 'torch', on: 'on' };
+
+  // Intentar obtener constantes de expo-camera, sino usar las manuales
+  const CameraType = Camera.Constants?.Type || ManualCameraType;
+  console.log('🔧 [ScannerInterface] CameraType:', CameraType ? 'OK' : 'USANDO MANUAL');
+  
+  const BarcodeType = Camera.Constants?.BarcodeFormat || Camera.Constants?.BarCodeTypes || ManualBarcodeFormat;
+  console.log('🔧 [ScannerInterface] BarcodeType:', BarcodeType ? 'OK' : 'USANDO MANUAL');
+  console.log('🔍 [ScannerInterface] barcode128 disponible:', !!BarcodeType.barcode128);
+  
+  const FlashMode = Camera.Constants?.FlashMode || ManualFlashMode;
+  console.log('🔧 [ScannerInterface] FlashMode:', FlashMode ? 'OK' : 'USANDO MANUAL');
 
   useEffect(() => { 
     console.log('🔄 [ScannerInterface] Actualizando modoDefectuosoRef:', modoDefectuosoLocal);
@@ -547,9 +560,9 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
     setCodigoManual('');
   }, [codigoManual, processCode, rangoEscaneo]);
   const toggleFlash = useCallback(() => {
-    setFlash(prev => prev === Camera.Constants.FlashMode.torch ? Camera.Constants.FlashMode.off : Camera.Constants.FlashMode.torch);
+    setFlash(prev => prev === FlashModeEarly.torch ? FlashModeEarly.off : FlashModeEarly.torch);
   }, []);
-  const getFlashIcon = useCallback(() => flash === Camera.Constants.FlashMode.torch ? '🔦' : '💡', [flash]);
+  const getFlashIcon = useCallback(() => flash === FlashModeEarly.torch ? '🔦' : '💡', [flash]);
   const toggleModoDefectuoso = useCallback(() => {
     setModoDefectuosoLocal(prev => {
       const nuevoEstado = !prev;
