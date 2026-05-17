@@ -211,8 +211,8 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   
   const ManualBarcodeFormat = {
     barcode128: 'barcode128',
-    barcode39: 'barcode39',
-    barcode93: 'barcode93',
+    barcode39: 'code39',
+    barcode93: 'code93',
     code25: 'code25',
     code39: 'code39',
     code93: 'code93',
@@ -232,15 +232,44 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   const ManualFlashMode = { off: 'off', torch: 'torch', on: 'on' };
 
   // Intentar obtener constantes de expo-camera, sino usar las manuales
-  const CameraType = Camera.Constants?.Type || ManualCameraType;
-  console.log('🔧 [ScannerInterface] CameraType:', CameraType ? 'OK' : 'USANDO MANUAL');
+  let CameraType, BarcodeType, FlashMode;
   
-  const BarcodeType = Camera.Constants?.BarcodeFormat || Camera.Constants?.BarCodeTypes || ManualBarcodeFormat;
-  console.log('🔧 [ScannerInterface] BarcodeType:', BarcodeType ? 'OK' : 'USANDO MANUAL');
-  console.log('🔍 [ScannerInterface] barcode128 disponible:', !!BarcodeType.barcode128);
+  try {
+    if (Camera.Constants?.Type) {
+      CameraType = Camera.Constants.Type;
+      console.log('🔧 [ScannerInterface] CameraType: expo-camera Constants');
+    } else {
+      CameraType = ManualCameraType;
+      console.log('🔧 [ScannerInterface] CameraType: USANDO MANUAL');
+    }
+    
+    if (Camera.Constants?.BarcodeFormat) {
+      BarcodeType = Camera.Constants.BarcodeFormat;
+      console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarcodeFormat');
+    } else if (Camera.Constants?.BarCodeTypes) {
+      BarcodeType = Camera.Constants.BarCodeTypes;
+      console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarCodeTypes');
+    } else {
+      BarcodeType = ManualBarcodeFormat;
+      console.log('🔧 [ScannerInterface] BarcodeType: USANDO MANUAL');
+    }
+    
+    if (Camera.Constants?.FlashMode) {
+      FlashMode = Camera.Constants.FlashMode;
+      console.log('🔧 [ScannerInterface] FlashMode: expo-camera Constants');
+    } else {
+      FlashMode = ManualFlashMode;
+      console.log('🔧 [ScannerInterface] FlashMode: USANDO MANUAL');
+    }
+  } catch (error) {
+    console.warn('⚠️ [ScannerInterface] Error al leer Camera.Constants:', error.message);
+    CameraType = ManualCameraType;
+    BarcodeType = ManualBarcodeFormat;
+    FlashMode = ManualFlashMode;
+  }
   
-  const FlashMode = Camera.Constants?.FlashMode || ManualFlashMode;
-  console.log('🔧 [ScannerInterface] FlashMode:', FlashMode ? 'OK' : 'USANDO MANUAL');
+  console.log('🔍 [ScannerInterface] barcode128 disponible:', !!BarcodeType?.barcode128);
+  console.log('🔍 [ScannerInterface] Valores BarcodeType keys:', Object.keys(BarcodeType || {}));
 
   useEffect(() => { 
     console.log('🔄 [ScannerInterface] Actualizando modoDefectuosoRef:', modoDefectuosoLocal);
