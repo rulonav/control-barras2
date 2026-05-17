@@ -5,7 +5,7 @@ import databaseService from '../services/databaseService';
 
 export const useProductOperations = ({ ruta, productos, setProductos, setUltimoResultado, setLoading }) => {
   
-  // ✅ PROCESAR ESCANEO CON VALIDACIÓN MEJORADA
+  // ✅ PROCESAR ESCANEO CON VALIDACIÓN MEJORADA Y DETECCIÓN DE DUPLICADOS
   const procesarEscaneo = async (codigo, esDefectuoso = false) => {
 
     try {
@@ -22,7 +22,24 @@ export const useProductOperations = ({ ruta, productos, setProductos, setUltimoR
         };
       }
 
-      // ✅ Crear producto en base de datos
+      // ✅ Verificar duplicado en base de datos ANTES de insertar
+      const { esDuplicado, producto: productoExistente } = await databaseService.verificarDuplicado(codigoLimpio, ruta.id);
+      
+      // Si es duplicado, notificar al usuario
+      if (esDuplicado) {
+        await audioService.playErrorSound();
+        const resultadoDuplicado = {
+          success: false,
+          mensaje: `⚠️ Código DUPLICADO - Ya existe en esta ruta (ID: ${productoExistente.id})`,
+          tipo: 'duplicado',
+          codigo: codigoLimpio,
+          productoExistente
+        };
+        setUltimoResultado(resultadoDuplicado);
+        return resultadoDuplicado;
+      }
+
+      // ✅ Crear producto en base de datos (ahora sin es_repetido porque ya verificamos)
       const productoData = {
         codigo: codigoLimpio,
         ruta_id: ruta.id,
@@ -165,15 +182,16 @@ export const useProductOperations = ({ ruta, productos, setProductos, setUltimoR
   // ✅ OBTENER ESTADÍSTICAS DE PRODUCTOS
   const obtenerEstadisticas = () => {
     if (!productos || productos.length === 0) {
-      return { total: 0, defectuosos: 0, mellizos: 0 };
+      return { total: 0, defectuosos: 0, mellizos: 0, duplicados: 0 };
     }
 
     const estadisticas = productos.reduce((acc, producto) => {
       acc.total++;
       if (producto.es_defectuoso) acc.defectuosos++;
       if (producto.es_mellizo) acc.mellizos++;
+      if (producto.es_repetido) acc.duplicados++;
       return acc;
-    }, { total: 0, defectuosos: 0, mellizos: 0 });
+    }, { total: 0, defectuosos: 0, mellizos: 0, duplicados: 0 });
 
     return estadisticas;
   };

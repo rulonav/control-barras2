@@ -7,6 +7,25 @@ class ExportService {
   constructor() {
     this.directorio = FileSystem.documentDirectory + 'exports/';
   }
+  
+  // ✅ SANITIZACIÓN PARA PREVENIR INYECCIÓN CSV
+  // Los valores que comienzan con =, +, -, @ pueden ejecutar fórmulas en Excel/Google Sheets
+  sanitizarCampoCSV = (valor) => {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+    
+    const valorStr = String(valor);
+    
+    // Si el valor comienza con caracteres peligrosos para CSV, prefijar con comilla simple
+    const caracteresPeligrosos = ['=', '+', '-', '@'];
+    if (caracteresPeligrosos.some(char => valorStr.trim().startsWith(char))) {
+      return "'" + valorStr.replace(/"/g, '""');
+    }
+    
+    // Escape normal de comillas dobles
+    return valorStr.replace(/"/g, '""');
+  };
 
   // ✅ COMPARTIR REPORTE COMO TEXTO EN EL MENSAJE
   exportarReporteTexto = async (ruta, usuario, productos) => {
@@ -22,7 +41,7 @@ class ExportService {
 
       // ✅ CORREGIDO: Asegurar que los saltos de línea sean interpretados correctamente
       const mensajeFormateado = contenido
-        .replace(/\\n/g, '\n')  // Convertir \n literales a saltos reales
+        .replace(/\\\\n/g, '\n')  // Convertir \n literales a saltos reales
         .replace(/\n{3,}/g, '\n\n'); // Limitar saltos múltiples
 
       // Compartir directamente como texto en el mensaje
@@ -55,11 +74,11 @@ class ExportService {
       
       productos.forEach(producto => {
         const fecha = formatters.formatFecha(producto.timestamp, true);
-        const detalle = (producto.detalle || '').replace(/"/g, '""'); // Escape comillas
+        const detalle = this.sanitizarCampoCSV(producto.detalle);
         const esMellizo = producto.es_mellizo ? 'Sí' : 'No';
         const esDefectuoso = producto.es_defectuoso ? 'Sí' : 'No';
-        // ✅ CORREGIDO: Saltos de línea explícitos reales
-        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
+        // ✅ CORREGIDO: Saltos de línea explícitos reales y sanitización aplicada
+        csvContent += `"${this.sanitizarCampoCSV(producto.codigo)}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
       });
 
       // Compartir CSV como texto en el mensaje
@@ -89,14 +108,14 @@ class ExportService {
       // Generar reporte de texto
       const reporteTexto = formatters.generarReporteTexto(ruta, usuario, productos);
       
-      // Generar CSV con saltos explícitos reales
+      // Generar CSV con saltos explícitos reales y sanitización
       let csvContent = 'Código,Fecha Escaneo,Detalle,Es Mellizo,Es Defectuoso\n';
       productos.forEach(producto => {
         const fecha = formatters.formatFecha(producto.timestamp, true);
-        const detalle = (producto.detalle || '').replace(/"/g, '""');
+        const detalle = this.sanitizarCampoCSV(producto.detalle);
         const esMellizo = producto.es_mellizo ? 'Sí' : 'No';
         const esDefectuoso = producto.es_defectuoso ? 'Sí' : 'No';
-        csvContent += `"${producto.codigo}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
+        csvContent += `"${this.sanitizarCampoCSV(producto.codigo)}","${fecha}","${detalle}","${esMellizo}","${esDefectuoso}"\n`;
       });
 
       // ✅ CORREGIDO: Combinar con saltos de línea explícitos reales
