@@ -209,32 +209,33 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   // Esto evita errores con diferentes versiones de expo-camera
   const ManualCameraType = { back: 'back', front: 'front' };
   
-  const ManualBarcodeFormat = {
-    barcode128: 'barcode128',
-    barcode39: 'code39',
-    barcode93: 'code93',
-    code25: 'code25',
-    code39: 'code39',
-    code93: 'code93',
-    codabar: 'codabar',
-    ean13: 'ean13',
-    ean8: 'ean8',
-    upc_a: 'upc_a',
-    upc_e: 'upc_e',
-    itf14: 'itf14',
-    pdf417: 'pdf417',
-    qr: 'qr',
-    datamatrix: 'datamatrix',
-    aztec: 'aztec',
-    code128: 'code128'
-  };
+  // Lista explícita de tipos de códigos de barra soportados (strings)
+  const SupportedBarcodeTypes = [
+    'barcode128',
+    'code128',
+    'barcode39',
+    'code39',
+    'barcode93',
+    'code93',
+    'code25',
+    'codabar',
+    'ean13',
+    'ean8',
+    'upc_a',
+    'upc_e',
+    'itf14',
+    'pdf417',
+    'qr',
+    'datamatrix',
+    'aztec'
+  ];
 
   const ManualFlashMode = { off: 'off', torch: 'torch', on: 'on' };
 
   // Intentar obtener constantes de expo-camera, sino usar las manuales
   let CameraType = ManualCameraType;
-  let BarcodeType = ManualBarcodeFormat;
   let FlashMode = ManualFlashMode;
+  let barcodeTypesToScan = SupportedBarcodeTypes; // Usamos array directo
   
   try {
     if (Camera.Constants && Camera.Constants.Type) {
@@ -245,15 +246,21 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
       console.log('🔧 [ScannerInterface] CameraType: USANDO MANUAL');
     }
     
+    // Intentar obtener BarcodeFormat de expo-camera
     if (Camera.Constants && Camera.Constants.BarcodeFormat) {
-      BarcodeType = Camera.Constants.BarcodeFormat;
-      console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarcodeFormat');
+      const expoTypes = Object.values(Camera.Constants.BarcodeFormat);
+      if (expoTypes && expoTypes.length > 0) {
+        barcodeTypesToScan = expoTypes;
+        console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarcodeFormat');
+      }
     } else if (Camera.Constants && Camera.Constants.BarCodeTypes) {
-      BarcodeType = Camera.Constants.BarCodeTypes;
-      console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarCodeTypes');
+      const expoTypes = Object.values(Camera.Constants.BarCodeTypes);
+      if (expoTypes && expoTypes.length > 0) {
+        barcodeTypesToScan = expoTypes;
+        console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarCodeTypes');
+      }
     } else {
-      BarcodeType = ManualBarcodeFormat;
-      console.log('🔧 [ScannerInterface] BarcodeType: USANDO MANUAL');
+      console.log('🔧 [ScannerInterface] BarcodeType: USANDO MANUAL (lista de strings)');
     }
     
     if (Camera.Constants && Camera.Constants.FlashMode) {
@@ -266,12 +273,11 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
   } catch (error) {
     console.warn('⚠️ [ScannerInterface] Error al leer Camera.Constants:', error.message);
     CameraType = ManualCameraType;
-    BarcodeType = ManualBarcodeFormat;
     FlashMode = ManualFlashMode;
+    barcodeTypesToScan = SupportedBarcodeTypes;
   }
   
-  console.log('🔍 [ScannerInterface] barcode128 disponible:', !!BarcodeType?.barcode128);
-  console.log('🔍 [ScannerInterface] Valores BarcodeType keys:', Object.keys(BarcodeType || {}));
+  console.log('🔍 [ScannerInterface] Tipos de código a escanear:', barcodeTypesToScan);
 
   useEffect(() => { 
     console.log('🔄 [ScannerInterface] Actualizando modoDefectuosoRef:', modoDefectuosoLocal);
@@ -632,26 +638,10 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
             flashMode={flash}
             onBarCodeScanned={modoDefectuosoLocal ? null : handleBarCodeScanned}
             barcodeScannerSettings={{
-              barcodeTypes: [
-                BarcodeType.barcode128,
-                BarcodeType.barcode39,
-                BarcodeType.barcode93,
-                BarcodeType.code25,
-                BarcodeType.code39,
-                BarcodeType.code93,
-                BarcodeType.codabar,
-                BarcodeType.ean13,
-                BarcodeType.ean8,
-                BarcodeType.upc_a,
-                BarcodeType.upc_e,
-                BarcodeType.itf14,
-                BarcodeType.pdf417,
-                BarcodeType.qr,
-                BarcodeType.aztec,
-                BarcodeType.datamatrix,
-              ],
+              barcodeTypes: barcodeTypesToScan
             }}
-          />
+            ratio="16:9"
+          >
           
           {/* Overlay de feedback visual */}
           {ultimoResultado && (
