@@ -48,6 +48,16 @@ const RutaForm = ({ onCrearRuta, userData }) => {
     }
   }, [prefijo1, tipoRuta, cargandoPreferencias]);
 
+  // ✅ PREVIEW DEL RANGO CON NUEVA LÓGICA ±1
+  const prefijoCentral = parseInt(prefijo1) || 0;
+  const prefijoInferior = prefijoCentral - 1;
+  const prefijoSuperior = prefijoCentral + 1;
+  const prefijoCentralPreview = prefijoCentral;
+  const prefijoInferiorPreview = prefijoCentralPreview - 1;
+  const prefijoSuperiorPreview = prefijoCentralPreview + 1;
+  const codigoInicialPreview = `${prefijoInferiorPreview}${'0'.repeat(9)}`;
+  const codigoFinalPreview = `${prefijoSuperiorPreview}${'0'.repeat(9)}`;
+
   const handleCrear = () => {
     // Validar prefijo (debe ser 2 dígitos numéricos)
     if (!/^\d{2}$/.test(prefijo1)) {
@@ -55,11 +65,11 @@ const RutaForm = ({ onCrearRuta, userData }) => {
       return;
     }
     // Validar que el prefijo esté entre 10 y 98 (para que n-1 >= 10 y n+1 <= 99)
-    const prefijoCentral = parseInt(prefijo1);
     if (prefijoCentral < 10 || prefijoCentral > 98) {
       Alert.alert('Error', 'El número debe estar entre 10 y 98 para calcular el rango correctamente');
       return;
     }
+    
     // Validar nombre de ruta
     if (!nombreRuta.trim()) {
       Alert.alert('Error', 'El nombre/número de ruta no puede estar vacío');
@@ -91,13 +101,6 @@ const RutaForm = ({ onCrearRuta, userData }) => {
       codigoFinal: parseInt(codigoFinal)      // 46000000000
     });
   };
-
-  // ✅ PREVIEW DEL RANGO CON NUEVA LÓGICA ±1
-  const prefijoCentralPreview = parseInt(prefijo1) || 0;
-  const prefijoInferiorPreview = prefijoCentralPreview - 1;
-  const prefijoSuperiorPreview = prefijoCentralPreview + 1;
-  const codigoInicialPreview = `${prefijoInferiorPreview}${'0'.repeat(9)}`;
-  const codigoFinalPreview = `${prefijoSuperiorPreview}${'0'.repeat(9)}`;
 
   if (cargandoPreferencias) {
     return (
