@@ -316,31 +316,78 @@ class DatabaseService {
     });
   }
 
-  async agregarProducto(productoData) {
+
+  // ✅ VERIFICAR DUPLICADOS ANTES DE INSERTAR
+  async verificarDuplicado(codigo, rutaId) {
     return new Promise((resolve, reject) => {
       this.db.transaction(tx => {
         tx.executeSql(
-          `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_defectuoso, es_repetido, timestamp)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [
-            productoData.codigo,
-            productoData.ruta_id,
-            productoData.detalle || null,
-            productoData.es_mellizo ? 1 : 0,
-            productoData.es_defectuoso ? 1 : 0,
-            productoData.es_repetido ? 1 : 0,
-            productoData.timestamp || new Date().toISOString()
-          ],
-          (_, result) => {
-            tx.executeSql(
-              'SELECT * FROM productos WHERE id = ?',
-              [result.insertId],
-              (_, { rows }) => resolve(rows._array[0]),
-              (_, error) => reject(error)
-            );
+          'SELECT id, codigo, timestamp FROM productos WHERE codigo = ? AND ruta_id = ? LIMIT 1',
+          [codigo, rutaId],
+          (_, { rows }) => {
+            if (rows.length > 0) {
+              resolve({ esDuplicado: true, producto: rows._array[0] });
+            } else {
+              resolve({ esDuplicado: false, producto: null });
+            }
           },
           (_, error) => reject(error)
         );
+      });
+    });
+  }
+
+  async agregarProducto(productoData) {
+    return new Promise((resolve, reject) => {
+      this.db.transaction(async (tx) => {
+        try {
+          // ✅ Verificar si el producto ya existe en esta ruta
+          const { esDuplicado, producto } = await new Promise((res, rej) => {
+            tx.executeSql(
+              'SELECT id, codigo, timestamp FROM productos WHERE codigo = ? AND ruta_id = ? LIMIT 1',
+              [productoData.codigo, productoData.ruta_id],
+              (_, { rows }) => {
+                if (rows.length > 0) {
+                  res({ esDuplicado: true, producto: rows._array[0] });
+                } else {
+                  res({ esDuplicado: false, producto: null });
+                }
+              },
+              (_, error) => rej(error)
+            );
+          });
+
+          // Si es duplicado, marcarlo como tal
+          const datosInsertar = {
+            ...productoData,
+            es_repetido: esDuplicado
+          };
+
+          tx.executeSql(
+            `INSERT INTO productos (codigo, ruta_id, detalle, es_mellizo, es_defectuoso, es_repetido, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              datosInsertar.codigo,
+              datosInsertar.ruta_id,
+              datosInsertar.detalle || null,
+              datosInsertar.es_mellizo ? 1 : 0,
+              datosInsertar.es_defectuoso ? 1 : 0,
+              datosInsertar.es_repetido ? 1 : 0,
+              datosInsertar.timestamp || new Date().toISOString()
+            ],
+            (_, result) => {
+              tx.executeSql(
+                'SELECT * FROM productos WHERE id = ?',
+                [result.insertId],
+                (_, { rows }) => resolve(rows._array[0]),
+                (_, error) => reject(error)
+              );
+            },
+            (_, error) => reject(error)
+          );
+        } catch (error) {
+          reject(error);
+        }
       });
     });
   }
