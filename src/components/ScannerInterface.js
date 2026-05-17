@@ -247,13 +247,13 @@ const ScannerInterface = ({ ruta, userData, navigation, modoDefectuoso = false, 
     }
     
     // Intentar obtener BarcodeFormat de expo-camera
-    if (Camera.Constants && Camera.Constants.BarcodeFormat) {
+    if (Camera.Constants && Camera.Constants.BarcodeFormat && typeof Camera.Constants.BarcodeFormat === 'object') {
       const expoTypes = Object.values(Camera.Constants.BarcodeFormat);
       if (expoTypes && expoTypes.length > 0) {
         barcodeTypesToScan = expoTypes;
         console.log('🔧 [ScannerInterface] BarcodeType: expo-camera BarcodeFormat');
       }
-    } else if (Camera.Constants && Camera.Constants.BarCodeTypes) {
+    } else if (Camera.Constants && Camera.Constants.BarCodeTypes && typeof Camera.Constants.BarCodeTypes === 'object') {
       const expoTypes = Object.values(Camera.Constants.BarCodeTypes);
       if (expoTypes && expoTypes.length > 0) {
         barcodeTypesToScan = expoTypes;
